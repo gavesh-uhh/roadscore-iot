@@ -4,6 +4,7 @@
 #include <HardwareSerial.h>
 #include <math.h>
 
+// Pin Definitions
 #define SDA_PIN       15
 #define SCL_PIN       14
 #define MPU_ADDR      0x68
@@ -11,8 +12,11 @@
 #define SOUND_PIN      3
 #define GPS_RX_PIN    13
 
+// Configuration
 const char* AP_SSID = "ESP-RoadScore";
 const char* AP_PASS = "123123123";
+const char* STA_SSID = "Gavesh";
+const char* STA_PASS = "123123123";
 
 TinyGPSPlus    gps;
 HardwareSerial gpsSerial(1);
@@ -54,8 +58,20 @@ void checkI2C() {
 
 void checkGPS() {
   unsigned long t = millis();
-  while (millis() - t < 3000) {
-    if (gpsSerial.available()) { gpsOK = true; break; }
+  String line = "";
+  while (millis() - t < 5000) {
+    while (gpsSerial.available()) {
+      char c = gpsSerial.read();
+      gps.encode(c);
+      line += c;
+      if (c == '\n') {
+        if (line.startsWith("$GPRMC") || line.startsWith("$GNRMC")) {
+          gpsOK = true;
+          return;
+        }
+        line = "";
+      }
+    }
   }
 }
 
@@ -182,10 +198,13 @@ void serveHTML(WiFiClient& client) {
 }
 
 void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  Wire.setTimeOut(25);
   Wire.begin(SDA_PIN, SCL_PIN);
   checkI2C();
 
-  // wake MPU6050 from sleep
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(0x6B);
   Wire.write(0x00);
@@ -194,13 +213,26 @@ void setup() {
   gpsSerial.begin(9600, SERIAL_8N1, GPS_RX_PIN, -1);
   checkGPS();
 
-  pinMode(VIBRATION_PIN, INPUT);
-  pinMode(SOUND_PIN,     INPUT);
+  pinMode(VIBRATION_PIN, INPUT_PULLDOWN);
+  pinMode(SOUND_PIN,     INPUT_PULLDOWN);
 
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(AP_SSID, AP_PASS);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(STA_SSID, STA_PASS);
+  Serial.print("Connecting to WiFi");
+  unsigned long t = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - t < 15000) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nConnected: " + WiFi.localIP().toString());
+  } else {
+    Serial.println("\nWiFi failed - check SSID/password");
+  }
 
   server.begin();
+  Serial.println("Server ready");
 }
 
 void loop() {
