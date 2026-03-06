@@ -28,7 +28,7 @@ const char *STA_SSID = "Gavesh";
 const char *STA_PASS = "123123123";
 
 const bool DISABLE_SERIAL = false;
-const unsigned long FIREBASE_INTERVAL = 10000;
+const unsigned long FIREBASE_INTERVAL = 1000;
 const unsigned long CLIENT_TIMEOUT_MS = 2000;
 const unsigned long WIFI_TIMEOUT_MS = 15000;
 const unsigned long OLED_UPDATE_INTERVAL = 1000;
