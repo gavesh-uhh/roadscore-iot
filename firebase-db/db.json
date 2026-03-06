@@ -1,0 +1,57 @@
+{
+  "users": {
+    "7968goU0cmWq4nZxlHM2b3mkgJM2": {
+      "name": "System Admin",
+      "email": "admin@admin.com",
+      "role": "admin",
+      "status": "active",
+      "createdAt": 1710000100
+    }
+  },
+
+  "vehicles": {
+    "VEH_001": {
+      "plateNumber": "CAR-4587",
+      "model": "Toyota Axio",
+      "deviceId": "ESP32_001",
+      "ownerUid": "UID_001",
+      "createdAt": 1710000300
+    }
+  },
+
+  "liveData": {
+    "ESP32_001": {
+      "vehicleId": "VEH_001",
+      "speed": 64,
+      "acceleration": {
+        "x": 0.8,
+        "y": -1.2,
+        "z": 9.6
+      },
+      "gyroscope": {
+        "pitch": 2.5,
+        "roll": -1.8,
+        "yaw": 0.3
+      },
+      "gps": {
+        "lat": 6.9271,
+        "lng": 79.8612
+      },
+      "vibration": false,
+      "soundDetected": false,
+      "timestamp": 1710000400
+    }
+  },
+
+  "alerts": {
+    "ALERT_001": {
+      "uid": "UID_001",
+      "vehicleId": "VEH_001",
+      "type": "crash_detected",
+      "severity": "high",
+      "message": "Possible collision detected",
+      "timestamp": 1710003200,
+      "acknowledged": false
+    }
+  }
+}

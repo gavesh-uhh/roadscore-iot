@@ -1,0 +1,33 @@
+{
+  "rules": {
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "vehicles": {
+      "$vehicleId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('vehicles').child($vehicleId).child('ownerUid').val() === auth.uid)"
+      }
+    },
+
+    "liveData": {
+      "$deviceId": {
+        ".read": "auth != null",
+        ".write": true
+      }
+    },
+
+    "alerts": {
+      "$alertId": {
+        ".read": "auth != null && (data.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": true
+      }
+    }
+
+  }
+}
