@@ -43,10 +43,138 @@
     }
   },
 
+  "driverScores": {
+    "VEH_001": {
+      "vehicleId": "VEH_001",
+      "deviceId": "ESP32_001",
+      "uid": "UID_001",
+      "currentScore": 850,
+      "previousScore": 880,
+      "lastCalculated": 1710000400,
+      "totalTrips": 45,
+      "averageScore": 865
+    }
+  },
+
+  "drivingBehavior": {
+    "VEH_001": {
+      "vehicleId": "VEH_001",
+      "deviceId": "ESP32_001",
+      "uid": "UID_001",
+      "metrics": {
+        "avgSpeed": 64,
+        "maxSpeed": 95,
+        "speedViolations": 3,
+        "harshAccelerations": 5,
+        "harshBraking": 4,
+        "sharpTurns": 7,
+        "smoothDriving": 85,
+        "idleTime": 120,
+        "nightDriving": 15
+      },
+      "recentEvents": [
+        {
+          "type": "Hard Break Found",
+          "value": 3.2,
+          "timestamp": 1709999800,
+          "location": { "lat": 6.9271, "lng": 79.8612 },
+          "rawData": {
+            "speed": 58,
+            "acceleration": { "x": -3.2, "y": -0.5, "z": 9.9 },
+            "gyroscope": { "pitch": 3.1, "roll": -2.2, "yaw": 0.8 },
+            "vibration": false,
+            "soundDetected": false
+          }
+        },
+        {
+          "type": "Sharp Cornering Found",
+          "value": 18.5,
+          "timestamp": 1710000100,
+          "location": { "lat": 6.9280, "lng": 79.8620 },
+          "rawData": {
+            "speed": 65,
+            "acceleration": { "x": 1.2, "y": -0.8, "z": 9.7 },
+            "gyroscope": { "pitch": 1.5, "roll": 18.5, "yaw": 2.8 },
+            "vibration": false,
+            "soundDetected": false
+          }
+        },
+        {
+          "type": "Pothole/Bump Found",
+          "value": 4.5,
+          "timestamp": 1710000250,
+          "location": { "lat": 6.9285, "lng": 79.8625 },
+          "rawData": {
+            "speed": 48,
+            "acceleration": { "x": 0.5, "y": -0.3, "z": 14.3 },
+            "gyroscope": { "pitch": 8.2, "roll": -1.1, "yaw": 0.4 },
+            "vibration": true,
+            "soundDetected": false
+          }
+        }
+      ],
+      "lastUpdated": 1710000400
+    }
+  },
+
+  "scoreHistory": {
+    "VEH_001_1709913600": {
+      "vehicleId": "VEH_001",
+      "uid": "UID_001",
+      "score": 880,
+      "date": "2024-03-08",
+      "timestamp": 1709913600,
+      "tripData": {
+        "distance": 25.5,
+        "duration": 1800,
+        "avgSpeed": 51
+      }
+    },
+    "VEH_001_1709827200": {
+      "vehicleId": "VEH_001",
+      "uid": "UID_001",
+      "score": 850,
+      "date": "2024-03-07",
+      "timestamp": 1709827200,
+      "tripData": {
+        "distance": 18.2,
+        "duration": 1200,
+        "avgSpeed": 54.6
+      }
+    }
+  },
+
+  "liveDataHistory": {
+    "ESP32_001_1710000400": {
+      "vehicleId": "VEH_001",
+      "deviceId": "ESP32_001",
+      "speed": 64,
+      "acceleration": {
+        "x": 0.8,
+        "y": -1.2,
+        "z": 9.6
+      },
+      "gyroscope": {
+        "pitch": 2.5,
+        "roll": -1.8,
+        "yaw": 0.3
+      },
+      "gps": {
+        "lat": 6.9271,
+        "lng": 79.8612
+      },
+      "vibration": false,
+      "soundDetected": false,
+      "calculatedScore": 850,
+      "timestamp": 1710000400
+    }
+  },
+
   "alerts": {
     "ALERT_001": {
       "uid": "UID_001",
       "vehicleId": "VEH_001",
+      "deviceId": "ESP32_001",
       "type": "crash_detected",
       "severity": "high",
       "message": "Possible collision detected",
