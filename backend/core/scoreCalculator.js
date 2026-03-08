@@ -37,7 +37,47 @@ function checkForCrash(data, events) {
 }
 
 function checkForHardBrake(data, events) {
+
+    const { current, previous, timeDelta } = data;
+
+    if (!previous || !timeDelta) return 0;
+
+    const speedDrop = previous.speed - current.speed;
+
+    const deceleration = current.acceleration.x;
+    
+    const yawChange = Math.abs(current.gyroscope.yaw - previous.gyroscope.yaw);
+    
+    const rollChange = Math.abs(current.gyroscope.roll - previous.gyroscope.roll);
+    
+    const vibrationDetected = current.vibration === true;
+
+    const timeSeconds = timeDelta / 1000;
+
+    const rapidStop = speedDrop > 5 && timeSeconds < 1;
+    const strongDeceleration = deceleration < -0.4;
+    const highYawRotation = yawChange > 0.3;
+    const tiltDetected = rollChange > 0.2;
+
+    if (
+        rapidStop &&
+        strongDeceleration &&
+        highYawRotation &&
+        tiltDetected &&
+        vibrationDetected &&
+        previous.speed > 10
+    ) {
+
+        return pushEvent(
+            events,
+            EVENTS.HAND_BRAKE,
+            deceleration,
+            "Possible handbrake maneuver detected"
+        );
+    }
+
     return 0;
+
 }
 
 function checkForSharpCornering(data, events) {
@@ -53,10 +93,58 @@ function checkForPothole(data, events) {
 }
 
 function checkForOverspeed(data, events) {
+
+    const { current, previous } = data;
+
+    if (!current) return 0;
+
+    const SPEED_LIMIT = 60; 
+
+    const currentSpeed = current.speed;
+    const previousSpeed = previous ? previous.speed : 0;
+
+    const isOverspeeding = currentSpeed > SPEED_LIMIT;
+    const wasOverspeeding = previousSpeed > SPEED_LIMIT;
+
+    if (isOverspeeding && !wasOverspeeding) {
+
+        return pushEvent(
+            events,
+            EVENTS.OVERSPEED,
+            currentSpeed,
+            `Vehicle exceeded speed limit of ${SPEED_LIMIT} km/h`
+        );
+
+    }
+
     return 0;
 }
 
 function checkForUnderspeed(data, events) {
+    
+    const { current, previous } = data;
+
+    if (!current) return 0;
+
+    const MIN_SPEED = 10; 
+
+    const currentSpeed = current.speed;
+    const previousSpeed = previous ? previous.speed : 0;
+
+    const isUnderspeeding = currentSpeed < MIN_SPEED;
+    const wasUnderspeeding = previousSpeed < MIN_SPEED;
+
+    if (isUnderspeeding && !wasUnderspeeding) {
+
+        return pushEvent(
+            events,
+            EVENTS.UNDERSPEED,
+            currentSpeed,
+            `Vehicle speed dropped below minimum threshold of ${MIN_SPEED} km/h`
+        );
+
+    }
+
     return 0;
 }
 
