@@ -1,20 +1,11 @@
-// =============================================
-// ALERT ROUTES
-// Handles system alerts (crashes, speeding, etc.)
-// =============================================
-
 const express = require('express');
 const router = express.Router();
 const { generateId, getDoc, getCollection, setDoc, deleteDoc } = require('../utils/db');
 
-
-// ----- GET ALL ALERTS -----
 router.get('/', async (req, res) => {
   try {
     const alertsObj = await getCollection('alerts');
-    // Convert object to array with id included
     const alerts = Object.keys(alertsObj).map(id => ({ id, ...alertsObj[id] }));
-    // Sort by timestamp (newest first)
     alerts.sort((a, b) => b.timestamp - a.timestamp);
     res.json(alerts);
   } catch (error) {
@@ -22,13 +13,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-
-// ----- GET ALERTS FOR A USER -----
 router.get('/user/:uid', async (req, res) => {
   try {
     const uid = req.params.uid;
     const alertsObj = await getCollection('alerts');
-    // Filter alerts for this user
     const alerts = Object.keys(alertsObj)
       .map(id => ({ id, ...alertsObj[id] }))
       .filter(alert => alert.uid === uid)
@@ -39,8 +27,6 @@ router.get('/user/:uid', async (req, res) => {
   }
 });
 
-
-// ----- GET ONE ALERT -----
 router.get('/:alertId', async (req, res) => {
   try {
     const alertId = req.params.alertId;
@@ -56,23 +42,18 @@ router.get('/:alertId', async (req, res) => {
   }
 });
 
-
-// ----- CREATE NEW ALERT -----
-// Alert types: crash_detected, overspeed, hard_brake, geofence_exit, low_battery, device_offline
 router.post('/', async (req, res) => {
   try {
     const uid = req.body.uid;
     const vehicleId = req.body.vehicleId;
     const type = req.body.type;
-    const severity = req.body.severity || 'medium'; // low, medium, high
+    const severity = req.body.severity || 'medium';
     const message = req.body.message;
-    
-    // Check required fields
+
     if (!type || !message) {
       return res.status(400).json({ error: 'type and message are required' });
     }
-    
-    // Valid alert types
+
     const validTypes = ['crash_detected', 'overspeed', 'hard_brake', 'geofence_exit', 'low_battery', 'device_offline'];
     if (!validTypes.includes(type)) {
       return res.status(400).json({ 
@@ -99,8 +80,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-
-// ----- ACKNOWLEDGE ALERT -----
 router.put('/:alertId/acknowledge', async (req, res) => {
   try {
     const alertId = req.params.alertId;
@@ -124,8 +103,6 @@ router.put('/:alertId/acknowledge', async (req, res) => {
   }
 });
 
-
-// ----- DELETE ALERT -----
 router.delete('/:alertId', async (req, res) => {
   try {
     const alertId = req.params.alertId;
