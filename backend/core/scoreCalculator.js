@@ -33,7 +33,26 @@ function pushEvent(events, eventDef, value, message) {
 }
 
 function checkForCrash(data, events) {
-    return 0;
+  const soundBlast = data.current.soundDetected;
+  const accelerationData = data.current.acceleration;
+  const allAcceleration = Math.sqrt(
+    Math.pow(accelerationData.x, 2) +
+      Math.pow(accelerationData.y, 2) +
+      Math.pow(accelerationData.z, 2),
+  ); //  pythagorean theorem  used here to calc the accel from all axis
+
+  const previousSpeed = data.previous.speed;
+  const currentSpeed = data.current.speed;
+  const suddenSpeedDrop = previousSpeed - currentSpeed;
+
+  if (soundBlast || allAcceleration > 5 || suddenSpeedDrop > 40) {
+    return pushEvent(
+      events,
+      EVENTS.CRASH,
+      { soundBlast, allAcceleration, suddenSpeedDrop },"Crash Detected from sensors of sound and acceleration data",);
+  }
+
+  return 0;
 }
 
 function checkForHardBrake(data, events) {
@@ -45,11 +64,11 @@ function checkForHardBrake(data, events) {
     const speedDrop = previous.speed - current.speed;
 
     const deceleration = current.acceleration.x;
-    
+
     const yawChange = Math.abs(current.gyroscope.yaw - previous.gyroscope.yaw);
-    
+
     const rollChange = Math.abs(current.gyroscope.roll - previous.gyroscope.roll);
-    
+
     const vibrationDetected = current.vibration === true;
 
     const timeSeconds = timeDelta / 1000;
@@ -81,16 +100,54 @@ function checkForHardBrake(data, events) {
 }
 
 function checkForSharpCornering(data, events) {
-    return 0;
+  const gyroRoll = data.current.gyroscope.roll;
+  const roll = Math.abs(gyroRoll);
+  const gyroYaw = data.current.gyroscope.yaw;
+  const yaw = Math.abs(gyroYaw);
+
+  const corneringThreshold = Math.max(roll, yaw);
+
+  if (corneringThreshold > 0.7) {
+    return pushEvent(
+      events,
+      EVENTS.SHARP_CORNER,
+      corneringThreshold,"Sharp Cornering Detected from sensors of gyroscope data",);
+  }
+
+  return 0;
 }
 
 function checkForHarshAcceleration(data, events) {
-    return 0;
+  const previousSpeed = data.previous.speed;
+  const currentSpeed = data.current.speed;
+
+  const suddenSpeedIncrease = currentSpeed - previousSpeed;
+
+  if (suddenSpeedIncrease > 20) {
+    return pushEvent(
+      events,
+      EVENTS.HARSH_ACCELERATION,
+      suddenSpeedIncrease, "Harsh Acceleration Detected from sensors of speed data",);
+  }
+
+  return 0;
 }
 
+
 function checkForPothole(data, events) {
-    return 0;
+  const vibration = data.current.vibration;
+  const jumpForce = data.current.acceleration.z;
+
+  if (vibration === true || jumpForce > 1) {
+    return pushEvent(
+      events,
+      EVENTS.POTHOLE,
+      { vibration, jumpForce },"Pothole or Bump Found from sensors of vibration and acceleration of Z axis data",);
+  }
+
+  return 0;
 }
+
 
 function checkForOverspeed(data, events) {
 
@@ -98,7 +155,7 @@ function checkForOverspeed(data, events) {
 
     if (!current) return 0;
 
-    const SPEED_LIMIT = 60; 
+    const SPEED_LIMIT = 60;
 
     const currentSpeed = current.speed;
     const previousSpeed = previous ? previous.speed : 0;
@@ -121,12 +178,12 @@ function checkForOverspeed(data, events) {
 }
 
 function checkForUnderspeed(data, events) {
-    
+
     const { current, previous } = data;
 
     if (!current) return 0;
 
-    const MIN_SPEED = 10; 
+    const MIN_SPEED = 10;
 
     const currentSpeed = current.speed;
     const previousSpeed = previous ? previous.speed : 0;
