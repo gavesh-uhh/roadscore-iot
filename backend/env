@@ -1,0 +1,10 @@
+# Backend Environment Variables
+
+# Server port
+PORT=3000
+
+# Firebase Database URL
+FIREBASE_DATABASE_URL=https://iot-test-b3636-default-rtdb.asia-southeast1.firebasedatabase.app/
+
+# Firebase API Key (from Firebase Console > Project Settings)
+FIREBASE_API_KEY=AIzaSyBPUZ0bFw1jK6mcjvoOxr4CJ0A6i7snvpQ
