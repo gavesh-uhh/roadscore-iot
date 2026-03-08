@@ -2,3 +2,16 @@ node_modules/
 .env
 *.log
 serviceAccountKey.json
+
+# Frontend
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.vite/
+*.local
+.DS_Store
+coverage/
+.eslintcache
