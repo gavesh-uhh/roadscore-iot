@@ -1,56 +1,44 @@
-// =============================================
-// IoT BACKEND SERVER
-// Main entry point for the application
-// =============================================
-
-// Load environment variables from .env file
 require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-
-// Import route files
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
 const vehiclesRoutes = require('./routes/vehicles');
 const liveDataRoutes = require('./routes/liveData');
 const alertsRoutes = require('./routes/alerts');
+const { startWorker } = require('./core/backgroundWorker');
 
-// Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ----- MIDDLEWARE -----
-// Allow requests from frontend (CORS)
 app.use(cors());
-// Parse JSON request bodies
 app.use(express.json());
 
-// ----- API ROUTES -----
-app.use('/auth', authRoutes);        // Login & Signup
-app.use('/users', usersRoutes);      // User management
-app.use('/vehicles', vehiclesRoutes); // Vehicle management
-app.use('/live-data', liveDataRoutes); // ESP32 sensor data
-app.use('/alerts', alertsRoutes);    // System alerts
+app.use('/auth', authRoutes);
+app.use('/users', usersRoutes);
+app.use('/vehicles', vehiclesRoutes);
+app.use('/live-data', liveDataRoutes);
+app.use('/alerts', alertsRoutes);
 
-// ----- HEALTH CHECK -----
-// Simple endpoint to check if server is running
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running!' });
 });
 
-// ----- ERROR HANDLING -----
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// ----- START SERVER -----
 app.listen(PORT, () => {
   console.log('');
-  console.log('========================================');
-  console.log('  IoT Backend Server Started!');
-  console.log('  URL: http://localhost:' + PORT);
-  console.log('========================================');
+  console.log('  ____                 _ ____                      ');
+  console.log(' |  _ \\ ___   __ _  __| / ___|  ___ ___  _ __ ___ ');
+  console.log(' | |_) / _ \\ / _` |/ _` \\___ \\ / __/ _ \\| \'__/ _ \\');
+  console.log(' |  _ < (_) | (_| | (_| |___) | (_| (_) | | |  __/');
+  console.log(' |_| \\_\\___/ \\__,_|\\__,_|____/ \\___\\___/|_|  \\___|');
   console.log('');
+  console.log('  Server running on http://localhost:' + PORT);
+  console.log('');
+  startWorker();
 });

@@ -1,14 +1,8 @@
-// =============================================
-// VEHICLE ROUTES
-// Handles vehicle management
-// =============================================
-
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 const { generateId, getDoc, getCollection, setDoc, deleteDoc } = require('../utils/db');
 
-// Middleware to verify admin role
 async function requireAdmin(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -31,12 +25,9 @@ async function requireAdmin(req, res, next) {
   }
 }
 
-
-// ----- GET ALL VEHICLES -----
 router.get('/', async (req, res) => {
   try {
     const vehiclesObj = await getCollection('vehicles');
-    // Convert object to array with id included
     const vehicles = Object.keys(vehiclesObj).map(id => ({ id, ...vehiclesObj[id] }));
     res.json(vehicles);
   } catch (error) {
@@ -44,8 +35,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-
-// ----- GET ONE VEHICLE -----
 router.get('/:vehicleId', async (req, res) => {
   try {
     const vehicleId = req.params.vehicleId;
@@ -61,8 +50,6 @@ router.get('/:vehicleId', async (req, res) => {
   }
 });
 
-
-// ----- GET LIVE DATA FOR VEHICLE -----
 router.get('/:vehicleId/live', async (req, res) => {
   try {
     const vehicleId = req.params.vehicleId;
@@ -84,16 +71,13 @@ router.get('/:vehicleId/live', async (req, res) => {
   }
 });
 
-
-// ----- CREATE NEW VEHICLE -----
 router.post('/', requireAdmin, async (req, res) => {
   try {
     const plateNumber = req.body.plateNumber;
     const model = req.body.model;
     const deviceId = req.body.deviceId;
     const ownerUid = req.body.ownerUid || null;
-    
-    // Check required fields
+
     if (!plateNumber || !model || !deviceId) {
       return res.status(400).json({ error: 'plateNumber, model, and deviceId are required' });
     }
@@ -115,8 +99,6 @@ router.post('/', requireAdmin, async (req, res) => {
   }
 });
 
-
-// ----- UPDATE VEHICLE -----
 router.put('/:vehicleId', requireAdmin, async (req, res) => {
   try {
     const vehicleId = req.params.vehicleId;
@@ -135,8 +117,6 @@ router.put('/:vehicleId', requireAdmin, async (req, res) => {
   }
 });
 
-
-// ----- DELETE VEHICLE -----
 router.delete('/:vehicleId', requireAdmin, async (req, res) => {
   try {
     const vehicleId = req.params.vehicleId;
