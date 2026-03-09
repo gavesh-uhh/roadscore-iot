@@ -12,9 +12,9 @@ const rand  = (min, max) => Math.random() * (max - min) + min;
 const drift = (val, amt, min, max) => Math.min(Math.max(val + rand(-amt, amt), min), max);
 const fix   = (val, dp = 3) => parseFloat(val.toFixed(dp));
 
-let speed = 42.3, lat = 6.9271, lng = 79.8612;
-let accX = 0.012, accY = -0.003, accZ = 9.8;
-let pitch = 0.21, roll = -0.10, yaw = 0.05;
+let speed = 0, lat = 6.9271, lng = 79.8612;
+let accX = -0.04, accY = -0.005, accZ = 0.96;
+let pitch = 0.2, roll = -1.8, yaw = 0.1;
 let currentEvent = 'normal';
 let eventTicks = 0;
 let lastError = null;
@@ -52,22 +52,22 @@ if (process.stdin.isTTY) {
 const getSensorData = () => {
   switch (currentEvent) {
     case 'hard_brake':
-      return { accX: -rand(3.2, 4.0), accY: -rand(0.3, 0.7), accZ: rand(9.5, 10.2), pitch: rand(2, 5), roll: rand(-3, 3), yaw: rand(0.5, 1.5), speed: Math.max(speed - rand(10, 20), 0), vibration: false, soundDetected: false };
+      return { accX: -rand(0.4, 0.8), accY: -rand(0.03, 0.07), accZ: rand(0.97, 1.04), pitch: rand(2, 5), roll: rand(-3, 3), yaw: rand(0.5, 1.5), speed: Math.max(speed - rand(10, 20), 0), vibration: false, soundDetected: false };
     case 'sharp_corner':
-      return { accX: rand(0.8, 1.5), accY: -rand(0.5, 1.0), accZ: rand(9.4, 9.9), pitch: rand(1, 2.5), roll: rand(18.5, 25), yaw: rand(2, 4), speed: drift(speed, 2, 30, 70), vibration: false, soundDetected: false };
+      return { accX: rand(0.08, 0.15), accY: -rand(0.05, 0.10), accZ: rand(0.96, 1.01), pitch: rand(1, 2.5), roll: rand(18.5, 25), yaw: rand(2, 4), speed: drift(speed, 2, 30, 70), vibration: false, soundDetected: false };
     case 'pothole':
-      return { accX: rand(0.3, 0.7), accY: -rand(0.1, 0.5), accZ: rand(14.3, 18.0), pitch: rand(7, 12), roll: rand(-2, 2), yaw: rand(0.2, 0.8), speed: drift(speed, 1, 20, 60), vibration: true, soundDetected: false };
+      return { accX: rand(0.03, 0.07), accY: -rand(0.01, 0.05), accZ: rand(1.5, 2.5), pitch: rand(7, 12), roll: rand(-2, 2), yaw: rand(0.2, 0.8), speed: drift(speed, 1, 20, 60), vibration: true, soundDetected: false };
     case 'crash':
-      return { accX: rand(4.0, 6.0), accY: rand(3.0, 5.0), accZ: rand(12.0, 18.0), pitch: rand(10, 20), roll: rand(15, 30), yaw: rand(5, 15), speed: 0, vibration: true, soundDetected: true };
+      return { accX: rand(2.0, 4.0), accY: rand(1.5, 3.0), accZ: rand(2.0, 4.0), pitch: rand(10, 20), roll: rand(15, 30), yaw: rand(5, 15), speed: 0, vibration: true, soundDetected: true };
     default:
-      accX  = drift(accX,  0.05, -0.5, 0.5);
-      accY  = drift(accY,  0.05, -0.5, 0.5);
-      accZ  = drift(accZ,  0.02,  9.6, 10.0);
-      pitch = drift(pitch, 0.1, -5, 5);
-      roll  = drift(roll,  0.1, -5, 5);
-      yaw   = drift(yaw,   0.2, -10, 10);
-      speed = drift(speed, 1,   20, 80);
-      return { accX, accY, accZ, pitch, roll, yaw, speed, vibration: Math.random() < 0.02, soundDetected: Math.random() < 0.01 };
+      accX  = drift(accX,  0.01, -0.08, 0.08);
+      accY  = drift(accY,  0.01, -0.08, 0.08);
+      accZ  = drift(accZ,  0.005, 0.94, 0.98);
+      pitch = drift(pitch, 0.1, -3, 3);
+      roll  = drift(roll,  0.1, -3, 3);
+      yaw   = drift(yaw,   0.1, -2, 2);
+      speed = drift(speed, 2,   30, 60);
+      return { accX, accY, accZ, pitch, roll, yaw, speed, vibration: false, soundDetected: false };
   }
 };
 
@@ -85,7 +85,7 @@ setInterval(async () => {
     if (eventTicks <= 0) {
       console.log('Event ended — back to normal\n');
       currentEvent = 'normal';
-      accX = 0; accY = 0; accZ = 9.8; pitch = 0; roll = 0; yaw = 0;
+      accX = -0.04; accY = -0.005; accZ = 0.96; pitch = 0.2; roll = -1.8; yaw = 0.1;
     }
   }
 

@@ -48,3 +48,4 @@ __screenshots__/
 
 # Backend
 serviceAccountKey.json
+backend/serviceAccountKey.json
