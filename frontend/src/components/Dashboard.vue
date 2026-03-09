@@ -257,6 +257,7 @@ onMounted(async () => {
         <LiveMap 
           :deviceId="selectedVehicle?.deviceId"
           :liveData="liveData"
+          :vehicleId="selectedVehicle?.id || selectedVehicleId"
         />
       </section>
     </main>

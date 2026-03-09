@@ -240,7 +240,7 @@ export function useLiveData(deviceId = 'esp32_001') {
   // }
 
   // Update live data - tries real device first, falls back to simulation
-  async function updateLiveData() {
+  async function updateLiveData(vehicleId = null) {
     const now = new Date()
     const timeStr = now.toLocaleTimeString('en-US', { hour12: false }).slice(3, 8)
     
@@ -272,7 +272,18 @@ export function useLiveData(deviceId = 'esp32_001') {
       // lastUpdateTime.value = Date.now()
     // }
     
-    driverScore.value = Math.floor(70 + Math.random() * 25)
+    // Fetch driver score from backend if vehicleId is provided
+    if (vehicleId) {
+      try {
+        const scoreData = await api.getDriverScore(vehicleId)
+        driverScore.value = Math.round(scoreData.currentScore / 10) // Convert from 0-1000 to 0-100 scale
+      } catch (error) {
+        console.error('Failed to fetch driver score:', error)
+        driverScore.value = 100 // Default score on error
+      }
+    } else {
+      driverScore.value = 100 // Default score when no vehicle selected
+    }
     
     // Update history
     timeLabels.value.push(timeStr)
@@ -299,11 +310,11 @@ export function useLiveData(deviceId = 'esp32_001') {
 
   // Start live updates
   function startUpdates(chartsRef, vehicleId = null, userId = null, interval = 2000) {
-    updateLiveData()
+    updateLiveData(vehicleId)
     chartsRef?.value?.updateCharts()
     
     updateInterval = setInterval(async () => {
-      await updateLiveData()
+      await updateLiveData(vehicleId)
       chartsRef?.value?.updateCharts()
       
       // Check for alerts if vehicle and user info provided

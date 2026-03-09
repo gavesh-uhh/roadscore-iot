@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateId, getDoc, getCollection, setDoc, deleteDoc } = require('../utils/db');
+const { db, generateId, getDoc, getCollection, setDoc, deleteDoc } = require('../utils/db');
 
 router.get('/', async (req, res) => {
   try {
@@ -98,6 +98,15 @@ router.put('/:alertId/acknowledge', async (req, res) => {
     await setDoc('alerts', alertId, updatedAlert);
     res.json({ id: alertId, ...updatedAlert });
     
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/', async (req, res) => {
+  try {
+    await db.ref('alerts').remove();
+    res.json({ message: 'All alerts deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

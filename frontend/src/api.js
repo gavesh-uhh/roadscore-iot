@@ -180,5 +180,27 @@ export const api = {
 
   async deleteAllAlerts() {
     await fetch(`${API_BASE}/alerts`, { method: 'DELETE' });
+  },
+
+  // Driver Scores
+  async getDriverScore(vehicleId) {
+    const res = await fetch(`${API_BASE}/driver-scores/vehicle/${vehicleId}`);
+    return res.json();
+  },
+
+  async getUserDriverScore(uid) {
+    const res = await fetch(`${API_BASE}/driver-scores/user/${uid}`);
+    return res.json();
+  },
+
+  // Driving Behavior & Crash Events
+  async getCrashEvents(vehicleId) {
+    const res = await fetch(`${API_BASE}/driving-behavior/vehicle/${vehicleId}/crashes`);
+    return res.json();
+  },
+
+  async getDrivingBehavior(vehicleId) {
+    const res = await fetch(`${API_BASE}/driving-behavior/vehicle/${vehicleId}`);
+    return res.json();
   }
 };

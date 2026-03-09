@@ -7,6 +7,8 @@ const usersRoutes = require('./routes/users');
 const vehiclesRoutes = require('./routes/vehicles');
 const liveDataRoutes = require('./routes/liveData');
 const alertsRoutes = require('./routes/alerts');
+const driverScoresRoutes = require('./routes/driverScores');
+const drivingBehaviorRoutes = require('./routes/drivingBehavior');
 const { startWorker } = require('./core/backgroundWorker');
 
 const app = express();
@@ -20,6 +22,8 @@ app.use('/users', usersRoutes);
 app.use('/vehicles', vehiclesRoutes);
 app.use('/live-data', liveDataRoutes);
 app.use('/alerts', alertsRoutes);
+app.use('/driver-scores', driverScoresRoutes);
+app.use('/driving-behavior', drivingBehaviorRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running!' });

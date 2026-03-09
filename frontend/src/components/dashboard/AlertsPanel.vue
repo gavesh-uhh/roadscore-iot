@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { AlertTriangle, Bell, BellOff, X, Check, Trash2 } from 'lucide-vue-next'
 import { api } from '../../api'
 import { useAlertEvents } from '../../composables/useAlertEvents'
@@ -66,7 +66,6 @@ async function deleteAlert(alert) {
 
 // Clear all alerts
 async function clearAllAlerts() {
-  if (!confirm('Are you sure you want to clear all alerts?')) return
   try {
     await api.deleteAllAlerts()
     alerts.value = []
@@ -108,11 +107,6 @@ function formatTime(timestamp) {
   if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago'
   return date.toLocaleDateString()
 }
-
-// Watch for alert updates from other components (real-time sync)
-watch(alertUpdateTrigger, () => {
-  fetchAlerts()
-})
 
 // Lifecycle
 onMounted(() => {

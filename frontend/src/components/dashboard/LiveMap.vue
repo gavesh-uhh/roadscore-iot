@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { MapPin, Navigation, RefreshCw } from 'lucide-vue-next'
+import { MapPin, Navigation, RefreshCw, AlertTriangle } from 'lucide-vue-next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { api } from '../../api'
 
 // Props
 const props = defineProps({
@@ -13,15 +14,21 @@ const props = defineProps({
   liveData: {
     type: Object,
     required: true
+  },
+  vehicleId: {
+    type: String,
+    default: null
   }
 })
 
 // State
 const mapContainer = ref(null)
 const isLoading = ref(true)
+const crashEvents = ref([])
 
 let map = null
 let marker = null
+let crashMarkers = []
 
 // Custom marker icon
 const createMarkerIcon = () => {
@@ -35,6 +42,26 @@ const createMarkerIcon = () => {
     `,
     iconSize: [30, 30],
     iconAnchor: [15, 15]
+  })
+}
+
+// Custom crash marker icon
+const createCrashMarkerIcon = () => {
+  return L.divIcon({
+    className: 'crash-marker',
+    html: `
+      <div class="crash-marker-container">
+        <div class="crash-marker-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+      </div>
+    `,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40]
   })
 }
 
@@ -98,6 +125,61 @@ const updateMarker = () => {
   updatePopup()
 }
 
+// Fetch crash events for the vehicle
+const fetchCrashEvents = async () => {
+  if (!props.vehicleId) return
+  
+  try {
+    const events = await api.getCrashEvents(props.vehicleId)
+    crashEvents.value = events
+    displayCrashMarkers()
+  } catch (error) {
+    console.error('Failed to fetch crash events:', error)
+  }
+}
+
+// Display crash markers on the map
+const displayCrashMarkers = () => {
+  if (!map) return
+  
+  // Remove existing crash markers
+  crashMarkers.forEach(marker => map.removeLayer(marker))
+  crashMarkers = []
+  
+  // Add new crash markers
+  crashEvents.value.forEach(event => {
+    if (event.location && event.location.lat && event.location.lng) {
+      const crashMarker = L.marker([event.location.lat, event.location.lng], {
+        icon: createCrashMarkerIcon()
+      }).addTo(map)
+      
+      // Add popup with crash details
+      const date = new Date(event.timestamp)
+      const timeStr = date.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+      
+      crashMarker.bindPopup(`
+        <div class="crash-popup">
+          <div class="crash-popup-header">
+            <strong>⚠️ Crash Detected</strong>
+          </div>
+          <div class="crash-popup-body">
+            <div><strong>Time:</strong> ${timeStr}</div>
+            <div><strong>Location:</strong> ${event.location.lat.toFixed(6)}, ${event.location.lng.toFixed(6)}</div>
+            ${event.rawData?.speed ? `<div><strong>Speed:</strong> ${event.rawData.speed} km/h</div>` : ''}
+          </div>
+        </div>
+      `)
+      
+      crashMarkers.push(crashMarker)
+    }
+  })
+}
+
 // Center map on current location
 const centerMap = () => {
   if (map && props.liveData?.gps) {
@@ -132,8 +214,16 @@ watch(() => props.deviceId, () => {
   }
 })
 
+// Watch for vehicle ID changes
+watch(() => props.vehicleId, () => {
+  fetchCrashEvents()
+})
+
 onMounted(() => {
   initMap()
+  fetchCrashEvents()
+  // Refresh crash events every 10 seconds
+  setInterval(fetchCrashEvents, 10000)
 })
 
 onUnmounted(() => {
@@ -176,8 +266,35 @@ onUnmounted(() => {
       <div ref="mapContainer" class="map"></div>
     </div>
     
+    <div class="map-legend">
+      <div class="legend-title">Map Legend:</div>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-icon vehicle-icon">
+            <div class="marker-container-mini">
+              <div class="marker-pulse-mini"></div>
+              <div class="marker-dot-mini"></div>
+            </div>
+          </div>
+          <span>Current Vehicle Location</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-icon crash-icon">
+            <div class="crash-marker-mini">
+              <AlertTriangle :size="14" />
+            </div>
+          </div>
+          <span>Crash Event Location</span>
+        </div>
+      </div>
+    </div>
+    
     <div class="map-footer">
       Last updated: {{ formatTime() }}
+      <span v-if="crashEvents.length > 0" class="crash-indicator">
+        <AlertTriangle :size="14" />
+        {{ crashEvents.length }} crash event{{ crashEvents.length !== 1 ? 's' : '' }} marked
+      </span>
     </div>
   </div>
 </template>
@@ -309,6 +426,90 @@ onUnmounted(() => {
   font-size: 14px;
 }
 
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 16px;
+  background: #1a1a1a;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+}
+
+.legend-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-items {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.legend-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
+.marker-container-mini {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.marker-pulse-mini {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 212, 170, 0.3);
+  border-radius: 50%;
+  animation: marker-pulse 2s infinite;
+}
+
+.marker-dot-mini {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #00d4aa;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.crash-marker-mini {
+  width: 24px;
+  height: 24px;
+  background: #ef4444;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+}
+
 .map-footer {
   display: flex;
   align-items: center;
@@ -318,6 +519,20 @@ onUnmounted(() => {
   border-top: 1px solid #222;
   color: #666;
   font-size: 12px;
+  justify-content: space-between;
+}
+
+.crash-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 @keyframes pulse {
@@ -373,6 +588,72 @@ onUnmounted(() => {
   }
 }
 
+/* Crash marker styles */
+:deep(.crash-marker) {
+  background: transparent;
+  border: none;
+}
+
+:deep(.crash-marker-container) {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.crash-marker-icon) {
+  width: 36px;
+  height: 36px;
+  background: #ef4444;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+  animation: crash-pulse 1.5s infinite;
+}
+
+:deep(.crash-marker-icon svg) {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes crash-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.9);
+  }
+}
+
+/* Crash popup styles */
+:deep(.crash-popup) {
+  min-width: 200px;
+}
+
+:deep(.crash-popup-header) {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #444;
+  color: #ef4444;
+  font-size: 14px;
+}
+
+:deep(.crash-popup-body div) {
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+:deep(.crash-popup-body strong) {
+  color: #fff;
+  margin-right: 4px;
+}
+
 /* Leaflet popup customization */
 :deep(.leaflet-popup-content-wrapper) {
   background: #252525;
@@ -416,6 +697,16 @@ onUnmounted(() => {
   .coords {
     display: none;
   }
+  
+  .map-legend {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .legend-items {
+    gap: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -425,6 +716,24 @@ onUnmounted(() => {
   
   .header-left h3 {
     font-size: 14px;
+  }
+  
+  .map-legend {
+    padding: 10px 12px;
+  }
+  
+  .legend-title {
+    font-size: 11px;
+  }
+  
+  .legend-item {
+    font-size: 11px;
+  }
+  
+  .map-footer {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
   }
 }
 </style>
