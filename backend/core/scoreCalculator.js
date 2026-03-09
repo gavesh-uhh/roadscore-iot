@@ -46,10 +46,11 @@ function checkForCrash(data, events) {
   const suddenSpeedDrop = previousSpeed - currentSpeed;
 
   if (soundBlast || allAcceleration > 5 || suddenSpeedDrop > 40) {
-    return pushEvent(
-      events,
-      EVENTS.CRASH,
-      { soundBlast, allAcceleration, suddenSpeedDrop },"Crash Detected from sensors of sound and acceleration data",);
+    console.log("[Crash] Sound Blast: " + soundBlast + ", All Acceleration: " + allAcceleration.toFixed(2) + ", Sudden Speed Drop: " + suddenSpeedDrop.toFixed(2) + " km/h, Previous Speed: " + previousSpeed + " km/h, Current Speed: " + currentSpeed + " km/h");
+    // return pushEvent(
+    //   events,
+    //   EVENTS.CRASH,
+    //   { soundBlast, allAcceleration, suddenSpeedDrop },"Crash Detected from sensors of sound and acceleration data",);
   }
 
   return 0;
@@ -62,17 +63,11 @@ function checkForHardBrake(data, events) {
     if (!previous || !timeDelta) return 0;
 
     const speedDrop = previous.speed - current.speed;
-
     const deceleration = current.acceleration.x;
-
     const yawChange = Math.abs(current.gyroscope.yaw - previous.gyroscope.yaw);
-
     const rollChange = Math.abs(current.gyroscope.roll - previous.gyroscope.roll);
-
     const vibrationDetected = current.vibration === true;
-
     const timeSeconds = timeDelta / 1000;
-
     const rapidStop = speedDrop > 5 && timeSeconds < 1;
     const strongDeceleration = deceleration < -0.4;
     const highYawRotation = yawChange > 0.3;
@@ -87,12 +82,13 @@ function checkForHardBrake(data, events) {
         previous.speed > 10
     ) {
 
-        return pushEvent(
-            events,
-            EVENTS.HAND_BRAKE,
-            deceleration,
-            "Possible handbrake maneuver detected"
-        );
+        console.log("[Hard Brake] Speed Drop: " + speedDrop.toFixed(2) + " km/h, Deceleration: " + deceleration.toFixed(2) + ", Yaw Change: " + yawChange.toFixed(2) + ", Roll Change: " + rollChange.toFixed(2) + ", Vibration: " + vibrationDetected + ", Time: " + timeSeconds.toFixed(2) + "s, Previous Speed: " + previous.speed + " km/h");
+        // return pushEvent(
+        //     events,
+        //     EVENTS.HAND_BRAKE,
+        //     deceleration,
+        //     "Possible handbrake maneuver detected"
+        // );
     }
 
     return 0;
@@ -108,10 +104,11 @@ function checkForSharpCornering(data, events) {
   const corneringThreshold = Math.max(roll, yaw);
 
   if (corneringThreshold > 0.7) {
-    return pushEvent(
-      events,
-      EVENTS.SHARP_CORNER,
-      corneringThreshold,"Sharp Cornering Detected from sensors of gyroscope data",);
+    // return pushEvent(
+    //   events,
+    //   EVENTS.SHARP_CORNER,
+    //   corneringThreshold,"Sharp Cornering Detected from sensors of gyroscope data",);
+    console.log("[Sharp Corner] Gyro Roll: " + roll.toFixed(2) + ", Gyro Yaw: " + yaw.toFixed(2));
   }
 
   return 0;
@@ -124,11 +121,13 @@ function checkForHarshAcceleration(data, events) {
   const suddenSpeedIncrease = currentSpeed - previousSpeed;
 
   if (suddenSpeedIncrease > 20) {
-    return pushEvent(
-      events,
-      EVENTS.HARSH_ACCELERATION,
-      suddenSpeedIncrease, "Harsh Acceleration Detected from sensors of speed data",);
-  }
+    console.log("[Harsh Acceleration] Detected: " + suddenSpeedIncrease + " km/h");
+    // return pushEvent(
+    //   events,
+    //   EVENTS.HARSH_ACCELERATION,
+    //   suddenSpeedIncrease, "Harsh Acceleration Detected from sensors of speed data",);
+    return 0;
+}
 
   return 0;
 }
@@ -139,10 +138,14 @@ function checkForPothole(data, events) {
   const jumpForce = data.current.acceleration.z;
 
   if (vibration === true || jumpForce > 1) {
-    return pushEvent(
-      events,
-      EVENTS.POTHOLE,
-      { vibration, jumpForce },"Pothole or Bump Found from sensors of vibration and acceleration of Z axis data",);
+    console.log("[Pothole] Detected: Jump Force - " + jumpForce
+    );
+    
+    return 0;
+    // return pushEvent(
+    //   events,
+    //   EVENTS.POTHOLE,
+    //   { vibration, jumpForce },"Pothole or Bump Found from sensors of vibration and acceleration of Z axis data",);
   }
 
   return 0;
@@ -165,12 +168,13 @@ function checkForOverspeed(data, events) {
 
     if (isOverspeeding && !wasOverspeeding) {
 
-        return pushEvent(
-            events,
-            EVENTS.OVERSPEED,
-            currentSpeed,
-            `Vehicle exceeded speed limit of ${SPEED_LIMIT} km/h`
-        );
+        console.log("[Overspeed] Detected: " + currentSpeed + " km/h");
+        // return pushEvent(
+        //     events,
+        //     EVENTS.OVERSPEED,
+        //     currentSpeed,
+        //     `Vehicle exceeded speed limit of ${SPEED_LIMIT} km/h`
+        // );
 
     }
 
@@ -193,12 +197,15 @@ function checkForUnderspeed(data, events) {
 
     if (isUnderspeeding && !wasUnderspeeding) {
 
-        return pushEvent(
-            events,
-            EVENTS.UNDERSPEED,
-            currentSpeed,
-            `Vehicle speed dropped below minimum threshold of ${MIN_SPEED} km/h`
-        );
+        console.log("[Underspeed] Detected: " + currentSpeed + " km/h");
+        
+        return 0;
+        // return pushEvent(
+        //     events,
+        //     EVENTS.UNDERSPEED,
+        //     currentSpeed,
+        //     `Vehicle speed dropped below minimum threshold of ${MIN_SPEED} km/h`
+        // );
 
     }
 
