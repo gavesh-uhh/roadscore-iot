@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 
-// Props
 const props = defineProps({
   speedHistory: Array,
   accelXHistory: Array,
@@ -14,17 +13,14 @@ const props = defineProps({
   timeLabels: Array
 })
 
-// Chart refs
 const speedChartRef = ref(null)
 const accelerationChartRef = ref(null)
 const gyroscopeChartRef = ref(null)
 
-// Chart instances
 let speedChart = null
 let accelerationChart = null
 let gyroscopeChart = null
 
-// Initialize speed chart - AREA CHART with scatter
 function initSpeedChart() {
   if (!speedChartRef.value) return
   if (speedChart) speedChart.dispose()
@@ -95,7 +91,6 @@ function initSpeedChart() {
   speedChart.setOption(option)
 }
 
-// Initialize acceleration chart - STACKED AREA CHART
 function initAccelerationChart() {
   if (!accelerationChartRef.value) return
   if (accelerationChart) accelerationChart.dispose()
@@ -191,7 +186,6 @@ function initAccelerationChart() {
   accelerationChart.setOption(option)
 }
 
-// Initialize gyroscope chart - LINE CHART
 function initGyroscopeChart() {
   if (!gyroscopeChartRef.value) return
   if (gyroscopeChart) gyroscopeChart.dispose()
@@ -287,7 +281,6 @@ function initGyroscopeChart() {
   gyroscopeChart.setOption(option)
 }
 
-// Update charts when data changes
 function updateCharts() {
   if (speedChart) {
     speedChart.setOption({ 
@@ -317,14 +310,12 @@ function updateCharts() {
   }
 }
 
-// Expose methods for parent
 defineExpose({ initCharts: () => {
   initSpeedChart()
   initAccelerationChart()
   initGyroscopeChart()
 }, updateCharts })
 
-// Handle resize
 function handleResize() {
   speedChart?.resize()
   accelerationChart?.resize()

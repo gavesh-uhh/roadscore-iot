@@ -9,7 +9,6 @@ const currentPage = ref('login')
 const user = ref(null)
 
 onMounted(() => {
-  // Check if user is already logged in
   const savedUser = api.getUser()
   if (savedUser) {
     user.value = savedUser

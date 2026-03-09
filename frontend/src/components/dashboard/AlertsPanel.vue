@@ -4,21 +4,17 @@ import { AlertTriangle, Bell, BellOff, X, Check, Trash2 } from 'lucide-vue-next'
 import { api } from '../../api'
 import { useAlertEvents } from '../../composables/useAlertEvents'
 
-// Props
 const props = defineProps({
   isAdmin: Boolean,
   userId: String
 })
 
-// Alert events for real-time updates
 const { alertUpdateTrigger, triggerAlertRefresh } = useAlertEvents()
 
-// State
 const alerts = ref([])
 const loading = ref(false)
 const showPanel = ref(false)
 
-// Computed
 const unacknowledgedCount = computed(() => {
   return alerts.value.filter(a => !a.acknowledged).length
 })
@@ -27,7 +23,6 @@ const sortedAlerts = computed(() => {
   return [...alerts.value].sort((a, b) => b.timestamp - a.timestamp)
 })
 
-// Fetch alerts (admin only)
 async function fetchAlerts() {
   if (!props.isAdmin) return
   loading.value = true
@@ -39,49 +34,41 @@ async function fetchAlerts() {
   loading.value = false
 }
 
-// Acknowledge alert
 async function acknowledgeAlert(alert) {
   try {
     await api.acknowledgeAlert(alert.id)
     alert.acknowledged = true
     alert.acknowledgedAt = Date.now()
-    // Trigger real-time update
     triggerAlertRefresh('acknowledge')
   } catch (e) {
     console.error('Failed to acknowledge alert:', e)
   }
 }
 
-// Delete alert
 async function deleteAlert(alert) {
   try {
     await api.deleteAlert(alert.id)
     alerts.value = alerts.value.filter(a => a.id !== alert.id)
-    // Trigger real-time update
     triggerAlertRefresh('delete')
   } catch (e) {
     console.error('Failed to delete alert:', e)
   }
 }
 
-// Clear all alerts
 async function clearAllAlerts() {
   try {
     await api.deleteAllAlerts()
     alerts.value = []
-    // Trigger real-time update across all components
     triggerAlertRefresh('clear_all')
   } catch (e) {
     console.error('Failed to clear all alerts:', e)
   }
 }
 
-// Toggle panel
 function togglePanel() {
   showPanel.value = !showPanel.value
 }
 
-// Get severity color
 function getSeverityClass(severity) {
   switch (severity) {
     case 'high': return 'severity-high'
@@ -91,12 +78,10 @@ function getSeverityClass(severity) {
   }
 }
 
-// Get alert icon
 function getAlertIcon(type) {
   return AlertTriangle
 }
 
-// Format timestamp
 function formatTime(timestamp) {
   const date = new Date(timestamp)
   const now = new Date()
@@ -108,23 +93,19 @@ function formatTime(timestamp) {
   return date.toLocaleDateString()
 }
 
-// Lifecycle
 onMounted(() => {
   fetchAlerts()
-  // Real-time polling - refresh alerts every 3 seconds
   setInterval(fetchAlerts, 3000)
 })
 </script>
 
 <template>
   <div v-if="isAdmin" class="alerts-container">
-    <!-- Bell Icon Button (Admin Only) -->
     <button class="alert-bell" @click="togglePanel" :class="{ 'has-alerts': unacknowledgedCount > 0 }">
       <Bell :size="20" />
       <span v-if="unacknowledgedCount > 0" class="alert-badge">{{ unacknowledgedCount }}</span>
     </button>
     
-    <!-- Alerts Panel -->
     <div class="alerts-panel" v-if="showPanel">
       <div class="panel-header">
         <div class="header-left">

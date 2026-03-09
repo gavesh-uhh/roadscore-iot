@@ -1,14 +1,12 @@
 <script setup>
 import { X } from 'lucide-vue-next'
 
-// Props
 defineProps({
   show: Boolean,
   title: String,
   loading: Boolean
 })
 
-// Emits
 defineEmits(['close', 'save'])
 </script>
 

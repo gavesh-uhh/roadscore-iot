@@ -33,7 +33,6 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -53,13 +52,11 @@ a:hover {
   background: #444;
 }
 
-/* Firefox scrollbar */
 * {
   scrollbar-width: thin;
   scrollbar-color: #333 #161616;
 }
 
-/* Mobile-friendly touch targets */
 @media (max-width: 768px) {
   button, 
   select,
@@ -80,18 +77,15 @@ a:hover {
   }
 }
 
-/* Prevent text selection on interactive elements */
 button, select {
   -webkit-user-select: none;
   user-select: none;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Safe area insets for notched devices */
 @supports (padding: env(safe-area-inset-bottom)) {
   .app-container {
     padding-bottom: env(safe-area-inset-bottom);

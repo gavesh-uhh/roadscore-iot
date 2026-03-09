@@ -1,4 +1,3 @@
-// Export all dashboard components
 export { default as Sidebar } from './Sidebar.vue'
 export { default as TopHeader } from './TopHeader.vue'
 export { default as DriverNav } from './DriverNav.vue'

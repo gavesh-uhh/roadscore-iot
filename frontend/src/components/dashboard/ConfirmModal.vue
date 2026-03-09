@@ -1,7 +1,6 @@
 <script setup>
 import { AlertTriangle, X } from 'lucide-vue-next'
 
-// Props
 defineProps({
   show: Boolean,
   title: {
@@ -27,7 +26,6 @@ defineProps({
   }
 })
 
-// Emits
 defineEmits(['confirm', 'cancel'])
 </script>
 

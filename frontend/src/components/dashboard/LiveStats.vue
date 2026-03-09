@@ -1,7 +1,6 @@
 <script setup>
 import { Gauge, Navigation, Waves, Volume2, RotateCcw, Trophy } from 'lucide-vue-next'
 
-// Props
 defineProps({
   liveData: Object,
   driverScore: Number

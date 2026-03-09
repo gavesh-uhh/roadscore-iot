@@ -1,5 +1,4 @@
 <script setup>
-// Props
 const props = defineProps({
   type: {
     type: String,
@@ -12,12 +11,10 @@ const props = defineProps({
   isAdmin: Boolean
 })
 
-// Emits
 defineEmits(['update:formData'])
 </script>
 
 <template>
-  <!-- User Form -->
   <template v-if="type === 'user'">
     <div class="form-group">
       <label>Name</label>
@@ -58,7 +55,6 @@ defineEmits(['update:formData'])
     </div>
   </template>
   
-  <!-- Vehicle Form -->
   <template v-if="type === 'vehicle'">
     <div class="form-group">
       <label>Plate Number</label>
@@ -146,7 +142,7 @@ defineEmits(['update:formData'])
   .form-group select,
   .form-group textarea {
     padding: 10px 12px;
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px;
   }
   
   .form-group label {

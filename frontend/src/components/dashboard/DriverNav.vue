@@ -1,5 +1,4 @@
 <script setup>
-// Props
 defineProps({
   currentSection: String,
   driverVehicles: Array,
@@ -7,10 +6,8 @@ defineProps({
   selectedVehicle: Object
 })
 
-// Emits
 defineEmits(['change-section', 'update:selectedVehicleId'])
 
-// Driver tabs
 const tabs = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'vehicles', label: 'My Vehicles' },
@@ -32,7 +29,6 @@ const tabs = [
       </button>
     </div>
     
-    <!-- Vehicle Selector (multiple vehicles) -->
     <div v-if="driverVehicles.length > 1" class="vehicle-selector">
       <select 
         :value="selectedVehicleId"
@@ -46,7 +42,6 @@ const tabs = [
     </div>
   </nav>
   
-  <!-- Single Vehicle Badge -->
   <div v-if="driverVehicles.length === 1" class="single-vehicle-badge">
     <span>Vehicle: {{ selectedVehicle?.plateNumber }} - {{ selectedVehicle?.model }}</span>
   </div>

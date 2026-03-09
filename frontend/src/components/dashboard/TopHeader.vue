@@ -2,7 +2,6 @@
 import { Search, LogOut } from 'lucide-vue-next'
 import AlertsPanel from './AlertsPanel.vue'
 
-// Props
 defineProps({
   title: String,
   userName: String,
@@ -16,7 +15,6 @@ defineProps({
   }
 })
 
-// Emits
 defineEmits(['update:searchQuery', 'logout'])
 </script>
 

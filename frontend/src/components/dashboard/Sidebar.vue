@@ -10,7 +10,6 @@ import {
   Menu
 } from 'lucide-vue-next'
 
-// Props
 const props = defineProps({
   currentSection: String,
   collapsed: Boolean,
@@ -20,10 +19,8 @@ const props = defineProps({
   }
 })
 
-// Emits
 const emit = defineEmits(['change-section', 'toggle-sidebar', 'logout'])
 
-// All navigation items with role requirements
 const allNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'driver'] },
   { id: 'vehicles', label: 'Vehicles', icon: Car, roles: ['admin', 'driver'] },
@@ -31,7 +28,6 @@ const allNavItems = [
   { id: 'trips', label: 'Live Map', icon: MapPin, roles: ['admin', 'driver'] }
 ]
 
-// Filter nav items based on user role
 const navItems = computed(() => {
   return allNavItems.filter(item => item.roles.includes(props.userRole))
 })

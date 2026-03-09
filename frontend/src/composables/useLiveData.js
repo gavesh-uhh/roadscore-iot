@@ -42,7 +42,6 @@ export function useLiveData(deviceId = 'esp32_001') {
   const recentAlerts = ref(new Set())
   const alertCooldown = 60000 
 
-  // Alert thresholds
   const THRESHOLDS = {
     SPEED_HIGH: 100, 
     SPEED_CRITICAL: 120, 
@@ -209,7 +208,7 @@ export function useLiveData(deviceId = 'esp32_001') {
     if (vehicleId) {
       try {
         const scoreData = await api.getDriverScore(vehicleId)
-        driverScore.value = Math.round(scoreData.currentScore / 10) // Convert from 0-1000 to 0-100 scale
+        driverScore.value = Math.round(scoreData.currentScore / 10)
       } catch (error) {
         console.error('Failed to fetch driver score:', error)
         driverScore.value = 100 

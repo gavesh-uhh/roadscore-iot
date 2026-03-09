@@ -5,7 +5,6 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api } from '../../api'
 
-// Props
 const props = defineProps({
   deviceId: {
     type: String,
@@ -21,7 +20,6 @@ const props = defineProps({
   }
 })
 
-// State
 const mapContainer = ref(null)
 const isLoading = ref(true)
 const crashEvents = ref([])
@@ -30,7 +28,6 @@ let map = null
 let marker = null
 let crashMarkers = []
 
-// Custom marker icon
 const createMarkerIcon = () => {
   return L.divIcon({
     className: 'custom-marker',
@@ -45,7 +42,6 @@ const createMarkerIcon = () => {
   })
 }
 
-// Custom crash marker icon
 const createCrashMarkerIcon = () => {
   return L.divIcon({
     className: 'crash-marker',
@@ -65,7 +61,6 @@ const createCrashMarkerIcon = () => {
   })
 }
 
-// Initialize map
 const initMap = () => {
   if (!mapContainer.value || map) return
 
@@ -79,24 +74,20 @@ const initMap = () => {
     attributionControl: true
   })
 
-  // Add OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
   }).addTo(map)
 
-  // Add marker
   marker = L.marker([lat, lng], {
     icon: createMarkerIcon()
   }).addTo(map)
 
-  // Add popup
   updatePopup()
   
   isLoading.value = false
 }
 
-// Update marker popup
 const updatePopup = () => {
   if (!marker) return
   
@@ -114,7 +105,6 @@ const updatePopup = () => {
   `)
 }
 
-// Update marker position from live data
 const updateMarker = () => {
   if (!marker || !map || !props.liveData?.gps) return
   
@@ -125,7 +115,6 @@ const updateMarker = () => {
   updatePopup()
 }
 
-// Fetch crash events for the vehicle
 const fetchCrashEvents = async () => {
   if (!props.vehicleId) return
   
@@ -138,22 +127,18 @@ const fetchCrashEvents = async () => {
   }
 }
 
-// Display crash markers on the map
 const displayCrashMarkers = () => {
   if (!map) return
   
-  // Remove existing crash markers
   crashMarkers.forEach(marker => map.removeLayer(marker))
   crashMarkers = []
   
-  // Add new crash markers
   crashEvents.value.forEach(event => {
     if (event.location && event.location.lat && event.location.lng) {
       const crashMarker = L.marker([event.location.lat, event.location.lng], {
         icon: createCrashMarkerIcon()
       }).addTo(map)
       
-      // Add popup with crash details
       const date = new Date(event.timestamp)
       const timeStr = date.toLocaleString('en-US', { 
         month: 'short', 
@@ -180,14 +165,12 @@ const displayCrashMarkers = () => {
   })
 }
 
-// Center map on current location
 const centerMap = () => {
   if (map && props.liveData?.gps) {
     map.setView([props.liveData.gps.lat, props.liveData.gps.lng], 15)
   }
 }
 
-// Format timestamp
 const formatTime = () => {
   if (!props.liveData?.timestamp) return 'No data'
   const date = new Date(props.liveData.timestamp)
@@ -198,12 +181,10 @@ const formatTime = () => {
   })
 }
 
-// Watch for live data updates
 watch(() => props.liveData, () => {
   updateMarker()
 }, { deep: true })
 
-// Watch for device ID changes
 watch(() => props.deviceId, () => {
   if (marker && map && props.liveData?.gps) {
     const lat = props.liveData.gps.lat || 6.9271
@@ -214,7 +195,6 @@ watch(() => props.deviceId, () => {
   }
 })
 
-// Watch for vehicle ID changes
 watch(() => props.vehicleId, () => {
   fetchCrashEvents()
 })
@@ -222,7 +202,6 @@ watch(() => props.vehicleId, () => {
 onMounted(() => {
   initMap()
   fetchCrashEvents()
-  // Refresh crash events every 10 seconds
   setInterval(fetchCrashEvents, 10000)
 })
 
@@ -540,7 +519,6 @@ onUnmounted(() => {
   50% { opacity: 0.5; }
 }
 
-/* Custom marker styles */
 :deep(.custom-marker) {
   background: transparent;
   border: none;
@@ -588,7 +566,6 @@ onUnmounted(() => {
   }
 }
 
-/* Crash marker styles */
 :deep(.crash-marker) {
   background: transparent;
   border: none;
@@ -630,7 +607,6 @@ onUnmounted(() => {
   }
 }
 
-/* Crash popup styles */
 :deep(.crash-popup) {
   min-width: 200px;
 }
@@ -654,7 +630,6 @@ onUnmounted(() => {
   margin-right: 4px;
 }
 
-/* Leaflet popup customization */
 :deep(.leaflet-popup-content-wrapper) {
   background: #252525;
   color: #fff;
@@ -676,7 +651,6 @@ onUnmounted(() => {
   font-family: inherit;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .map-header {
     flex-direction: column;

@@ -1,11 +1,9 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 
-// Composables
 import { useLiveData } from '../composables/useLiveData'
 import { useCrud } from '../composables/useCrud'
 
-// Components
 import Sidebar from './dashboard/Sidebar.vue'
 import TopHeader from './dashboard/TopHeader.vue'
 import DriverNav from './dashboard/DriverNav.vue'
@@ -17,15 +15,12 @@ import FormFields from './dashboard/FormFields.vue'
 import ConfirmModal from './dashboard/ConfirmModal.vue'
 import LiveMap from './dashboard/LiveMap.vue'
 
-// Props and emits
 const props = defineProps({ user: Object })
 defineEmits(['logout'])
 
-// Role-based permissions
 const userRole = computed(() => props.user?.role || 'driver')
 const isAdmin = computed(() => userRole.value === 'admin')
 
-// Use composables
 const {
   liveData,
   speedHistory,
@@ -72,14 +67,11 @@ const {
   isAdmin
 )
 
-// Navigation state
 const currentSection = ref('dashboard')
 const sidebarCollapsed = ref(false)
 
-// Charts ref
 const chartsRef = ref(null)
 
-// Navigation labels
 const navLabels = {
   dashboard: 'Dashboard',
   vehicles: 'Vehicles',
@@ -87,7 +79,6 @@ const navLabels = {
   trips: 'Live Map'
 }
 
-// Table columns
 const userColumns = [
   { key: 'name', label: 'Name' },
   { key: 'email', label: 'Email' },
@@ -100,13 +91,11 @@ const vehicleColumns = computed(() => [
   { key: 'deviceId', label: 'Device ID' }
 ])
 
-// Section change
 function changeSection(section) {
   currentSection.value = section
   searchQuery.value = ''
 }
 
-// Check if user has a vehicle selected for monitoring
 const hasVehicleSelected = computed(() => {
   if (isAdmin.value) {
     return selectedVehicleId.value && vehicles.value.length > 0
@@ -114,7 +103,6 @@ const hasVehicleSelected = computed(() => {
   return driverVehicles.value.length > 0
 })
 
-// Watch for vehicle selection changes (for admin) to start/stop updates
 watch(selectedVehicleId, (newId) => {
   if (isAdmin.value && newId) {
     startUpdates(chartsRef, newId, props.user?.uid)
@@ -123,12 +111,9 @@ watch(selectedVehicleId, (newId) => {
   }
 })
 
-// Lifecycle
 onMounted(async () => {
-  // Fetch data first
   await fetchAll()
   
-  // Wait for charts to be mounted, then start live updates only if vehicle selected
   setTimeout(() => {
     if (hasVehicleSelected.value) {
       const vehicleId = isAdmin.value ? selectedVehicleId.value : selectedVehicle.value?.id
@@ -140,7 +125,6 @@ onMounted(async () => {
 
 <template>
   <div class="app-container" :class="{ 'no-sidebar': !isAdmin }">
-    <!-- Sidebar (Admin only) -->
     <Sidebar
       v-if="isAdmin"
       :currentSection="currentSection"
@@ -151,9 +135,7 @@ onMounted(async () => {
       @logout="$emit('logout')"
     />
     
-    <!-- Main Content -->
     <main class="main-content">
-      <!-- Header -->
       <TopHeader
         :title="navLabels[currentSection]"
         :userName="user?.name"
@@ -165,7 +147,6 @@ onMounted(async () => {
         @logout="$emit('logout')"
       />
       
-      <!-- Driver Navigation -->
       <DriverNav
         v-if="!isAdmin"
         :currentSection="currentSection"
@@ -176,9 +157,7 @@ onMounted(async () => {
         v-model:selectedVehicleId="selectedVehicleId"
       />
       
-      <!-- Dashboard -->
       <section v-if="currentSection === 'dashboard'" class="content-area dashboard-section">
-        <!-- Admin vehicle selector -->
         <div v-if="isAdmin" class="admin-vehicle-selector">
           <label>Select Vehicle to Monitor:</label>
           <select v-model="selectedVehicleId" class="vehicle-select">
@@ -189,19 +168,16 @@ onMounted(async () => {
           </select>
         </div>
         
-        <!-- No vehicle assigned message for drivers -->
         <div v-if="!isAdmin && !hasVehicleSelected" class="no-vehicle-message">
           <h2>No Vehicle Assigned</h2>
           <p>Please contact your administrator to assign a vehicle to your account.</p>
         </div>
         
-        <!-- No vehicle selected message for admin -->
         <div v-else-if="isAdmin && !hasVehicleSelected" class="no-vehicle-message">
           <h2>Select a Vehicle</h2>
           <p>Please select a vehicle from the dropdown above to monitor its live data.</p>
         </div>
         
-        <!-- Show stats and charts only if vehicle selected -->
         <template v-else>
           <div class="stats-fixed">
             <LiveStats :liveData="liveData" :driverScore="driverScore" />
@@ -222,7 +198,6 @@ onMounted(async () => {
         </template>
       </section>
       
-      <!-- Users -->
       <section v-if="currentSection === 'users'" class="content-area">
         <DataCards
           title="Manage Users"
@@ -237,7 +212,6 @@ onMounted(async () => {
         />
       </section>
       
-      <!-- Vehicles -->
       <section v-if="currentSection === 'vehicles'" class="content-area">
         <DataCards
           title="Manage Vehicles"
@@ -252,7 +226,6 @@ onMounted(async () => {
         />
       </section>
       
-      <!-- Live Map -->
       <section v-if="currentSection === 'trips'" class="content-area">
         <LiveMap 
           :deviceId="selectedVehicle?.deviceId"
@@ -262,7 +235,6 @@ onMounted(async () => {
       </section>
     </main>
     
-    <!-- Modal -->
     <FormModal
       :show="showModal"
       :title="(editingItem ? 'Edit ' : 'Add ') + modalType.charAt(0).toUpperCase() + modalType.slice(1)"
@@ -280,7 +252,6 @@ onMounted(async () => {
       />
     </FormModal>
     
-    <!-- Confirm Delete Modal -->
     <ConfirmModal
       :show="showConfirmModal"
       title="Delete Item"

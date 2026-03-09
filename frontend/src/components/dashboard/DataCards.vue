@@ -1,11 +1,10 @@
 <script setup>
 import { Plus, Edit, Trash2, User, Car } from 'lucide-vue-next'
 
-// Props
 const props = defineProps({
   items: Array,
   title: String,
-  columns: Array,  // [{ key: 'name', label: 'Name' }, ...]
+  columns: Array,
   canAdd: {
     type: Boolean,
     default: true
@@ -20,10 +19,8 @@ const props = defineProps({
   }
 })
 
-// Emits
 defineEmits(['add', 'edit', 'delete'])
 
-// Check if it's users or vehicles
 const isUsers = props.title.toLowerCase().includes('user')
 const isVehicles = props.title.toLowerCase().includes('vehicle')
 </script>
@@ -112,7 +109,6 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
   background: #2563eb;
 }
 
-/* Cards Grid */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

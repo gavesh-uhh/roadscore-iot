@@ -115,7 +115,6 @@ input:focus {
   border-color: #3b82f6;
 }
 
-/* Fix browser autofill white background */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -173,7 +172,7 @@ button:disabled {
   }
   
   input {
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px;
     padding: 14px 15px;
   }
   
