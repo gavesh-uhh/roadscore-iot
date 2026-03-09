@@ -1,0 +1,12 @@
+// Export all dashboard components
+export { default as Sidebar } from './Sidebar.vue'
+export { default as TopHeader } from './TopHeader.vue'
+export { default as DriverNav } from './DriverNav.vue'
+export { default as LiveStats } from './LiveStats.vue'
+export { default as LiveCharts } from './LiveCharts.vue'
+export { default as DataCards } from './DataCards.vue'
+export { default as FormModal } from './FormModal.vue'
+export { default as FormFields } from './FormFields.vue'
+export { default as ConfirmModal } from './ConfirmModal.vue'
+export { default as LiveMap } from './LiveMap.vue'
+export { default as AlertsPanel } from './AlertsPanel.vue'
