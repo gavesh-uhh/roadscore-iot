@@ -1,14 +1,10 @@
-// API Base URL from environment variable
-// Set VITE_API_URL in .env file to change the server URL
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const api = {
-  // Get the base URL
   getBaseUrl() {
     return API_BASE;
   },
 
-  // Auth functions
   async login(email, password) {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -22,7 +18,6 @@ export const api = {
       throw new Error(data.error || 'Login failed');
     }
     
-    // Store user and token in localStorage
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('token', data.token);
     return data;
@@ -41,7 +36,6 @@ export const api = {
       throw new Error(data.error || 'Signup failed');
     }
     
-    // Store user in localStorage
     localStorage.setItem('user', JSON.stringify(data.user));
     return data;
   },
@@ -69,7 +63,6 @@ export const api = {
     return !!localStorage.getItem('user');
   },
 
-  // Users CRUD
   async getUsers() {
     const res = await fetch(`${API_BASE}/users`);
     return res.json();
@@ -97,7 +90,6 @@ export const api = {
     await fetch(`${API_BASE}/users/${id}`, { method: 'DELETE' });
   },
 
-  // Vehicles CRUD
   async getVehicles() {
     const res = await fetch(`${API_BASE}/vehicles`);
     return res.json();
@@ -140,13 +132,11 @@ export const api = {
     }
   },
 
-  // Live Data
   async getLiveData() {
     const res = await fetch(`${API_BASE}/live-data`);
     return res.json();
   },
 
-  // Alerts
   async getAlerts() {
     const res = await fetch(`${API_BASE}/alerts`);
     return res.json();
@@ -182,7 +172,6 @@ export const api = {
     await fetch(`${API_BASE}/alerts`, { method: 'DELETE' });
   },
 
-  // Driver Scores
   async getDriverScore(vehicleId) {
     const res = await fetch(`${API_BASE}/driver-scores/vehicle/${vehicleId}`);
     return res.json();
@@ -193,7 +182,6 @@ export const api = {
     return res.json();
   },
 
-  // Driving Behavior & Crash Events
   async getCrashEvents(vehicleId) {
     const res = await fetch(`${API_BASE}/driving-behavior/vehicle/${vehicleId}/crashes`);
     return res.json();

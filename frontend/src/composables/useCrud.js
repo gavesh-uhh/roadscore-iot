@@ -1,28 +1,19 @@
-// =============================================
-// CRUD COMPOSABLE
-// Handles create, read, update, delete operations
-// =============================================
-
 import { ref, computed } from 'vue'
 import { api } from '../api'
 
 export function useCrud(userRef, isAdminRef) {
-  // Data
   const users = ref([])
   const vehicles = ref([])
 
-  // Modal state
   const showModal = ref(false)
   const modalType = ref('')
   const editingItem = ref(null)
   const loading = ref(false)
 
-  // Confirm modal state
   const showConfirmModal = ref(false)
   const confirmLoading = ref(false)
   const pendingDelete = ref({ type: '', id: null, name: '' })
 
-  // Form data
   const formData = ref({
     name: '',
     email: '',
@@ -35,13 +26,10 @@ export function useCrud(userRef, isAdminRef) {
     description: ''
   })
 
-  // Search
   const searchQuery = ref('')
 
-  // Vehicle selection for drivers
   const selectedVehicleId = ref(null)
 
-  // ----- FETCH FUNCTIONS -----
   async function fetchUsers() {
     try {
       users.value = await api.getUsers()
@@ -63,7 +51,6 @@ export function useCrud(userRef, isAdminRef) {
     await Promise.all([fetchUsers(), fetchVehicles()])
   }
 
-  // ----- MODAL FUNCTIONS -----
   function openModal(type, item = null) {
     modalType.value = type
     editingItem.value = item
@@ -88,7 +75,6 @@ export function useCrud(userRef, isAdminRef) {
     editingItem.value = null
   }
 
-  // ----- SAVE ITEM -----
   async function saveItem() {
     loading.value = true
     
@@ -120,7 +106,6 @@ export function useCrud(userRef, isAdminRef) {
     loading.value = false
   }
 
-  // ----- DELETE ITEM -----
   function openDeleteConfirm(type, id, name = '') {
     pendingDelete.value = { type, id, name }
     showConfirmModal.value = true
@@ -146,7 +131,6 @@ export function useCrud(userRef, isAdminRef) {
     confirmLoading.value = false
   }
 
-  // ----- VEHICLE SELECTION -----
   const driverVehicles = computed(() => {
     if (isAdminRef?.value) return vehicles.value
     return vehicles.value.filter(v => v.ownerUid === userRef?.value?.uid)
@@ -163,7 +147,6 @@ export function useCrud(userRef, isAdminRef) {
     }
   }
 
-  // ----- FILTERED LISTS -----
   const filteredUsers = computed(() => {
     if (!searchQuery.value) return users.value
     const q = searchQuery.value.toLowerCase()
@@ -182,29 +165,22 @@ export function useCrud(userRef, isAdminRef) {
   })
 
   return {
-    // Data
     users,
     vehicles,
-    // Modal
     showModal,
     modalType,
     editingItem,
     loading,
     formData,
-    // Confirm modal
     showConfirmModal,
     confirmLoading,
     pendingDelete,
-    // Search
     searchQuery,
-    // Vehicle selection
     selectedVehicleId,
     driverVehicles,
     selectedVehicle,
-    // Filtered
     filteredUsers,
     filteredVehicles,
-    // Methods
     fetchUsers,
     fetchVehicles,
     fetchAll,
