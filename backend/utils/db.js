@@ -39,8 +39,13 @@ async function setDoc(collectionName, id, data) {
   return { id: id, ...data };
 }
 
+async function replaceDoc(collectionName, id, data) {
+  await db.ref(collectionName + '/' + id).set(data);
+  return { id: id, ...data };
+}
+
 async function deleteDoc(collectionName, id) {
   await db.ref(collectionName + '/' + id).remove();
 }
 
-module.exports = { db, generateId, getDoc, getCollection, setDoc, deleteDoc };
+module.exports = { db, generateId, getDoc, getCollection, setDoc, replaceDoc, deleteDoc };

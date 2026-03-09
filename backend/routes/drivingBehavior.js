@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDoc, getCollection } = require('../utils/db');
+const { getDoc, getCollection, setDoc, replaceDoc } = require('../utils/db');
 
 // Get all driving behavior data
 router.get('/', async (req, res) => {
@@ -50,6 +50,37 @@ router.get('/vehicle/:vehicleId/crashes', async (req, res) => {
     );
     
     res.json(crashes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Clear crash events for a vehicle
+router.delete('/vehicle/:vehicleId/crashes', async (req, res) => {
+  try {
+    const vehicleId = req.params.vehicleId;
+    const behavior = await getDoc('drivingBehavior', vehicleId);
+    
+    if (!behavior) {
+      return res.json({ message: 'No behavior data found' });
+    }
+    
+    // Remove crash events from recentEvents
+    const recentEvents = behavior.recentEvents || [];
+    const nonCrashEvents = recentEvents.filter(event => 
+      event.type !== 'Crash Detected' && event.type !== 'crash_detected'
+    );
+    
+    const crashCount = recentEvents.length - nonCrashEvents.length;
+    
+    // Replace the document with updated recentEvents
+    const { id, ...behaviorData } = behavior;
+    await replaceDoc('drivingBehavior', vehicleId, {
+      ...behaviorData,
+      recentEvents: nonCrashEvents
+    });
+    
+    res.json({ message: 'Crash events cleared successfully', count: crashCount });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

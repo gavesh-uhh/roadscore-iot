@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { MapPin, Navigation, RefreshCw, AlertTriangle } from 'lucide-vue-next'
+import { MapPin, Navigation, RefreshCw, AlertTriangle, X } from 'lucide-vue-next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api } from '../../api'
@@ -23,6 +23,7 @@ const props = defineProps({
 const mapContainer = ref(null)
 const isLoading = ref(true)
 const crashEvents = ref([])
+const showCrashMarkers = ref(true)
 
 let map = null
 let marker = null
@@ -127,8 +128,35 @@ const fetchCrashEvents = async () => {
   }
 }
 
+const toggleCrashMarkers = () => {
+  showCrashMarkers.value = !showCrashMarkers.value
+  if (!showCrashMarkers.value) {
+    // Hide markers
+    crashMarkers.forEach(marker => map.removeLayer(marker))
+    crashMarkers = []
+  } else {
+    // Show markers
+    displayCrashMarkers()
+  }
+}
+
+const clearCrashMarkers = async () => {
+  if (!props.vehicleId) return
+  
+  try {
+    await api.deleteCrashEvents(props.vehicleId)
+    
+    // Clear from UI
+    crashMarkers.forEach(marker => map.removeLayer(marker))
+    crashMarkers = []
+    crashEvents.value = []
+  } catch (error) {
+    console.error('Failed to clear crash events:', error)
+  }
+}
+
 const displayCrashMarkers = () => {
-  if (!map) return
+  if (!map || !showCrashMarkers.value) return
   
   crashMarkers.forEach(marker => map.removeLayer(marker))
   crashMarkers = []
@@ -270,10 +298,30 @@ onUnmounted(() => {
     
     <div class="map-footer">
       Last updated: {{ formatTime() }}
-      <span v-if="crashEvents.length > 0" class="crash-indicator">
-        <AlertTriangle :size="14" />
-        {{ crashEvents.length }} crash event{{ crashEvents.length !== 1 ? 's' : '' }} marked
-      </span>
+      <div v-if="crashEvents.length > 0" class="crash-controls">
+        <span class="crash-indicator">
+          <AlertTriangle :size="14" />
+          {{ crashEvents.length }} crash event{{ crashEvents.length !== 1 ? 's' : '' }}
+        </span>
+        <button 
+          class="toggle-crash-btn" 
+          :class="{ 'hidden': !showCrashMarkers }"
+          @click="toggleCrashMarkers" 
+          :title="showCrashMarkers ? 'Hide crash markers' : 'Show crash markers'"
+        >
+          <X v-if="showCrashMarkers" :size="14" />
+          <AlertTriangle v-else :size="14" />
+          {{ showCrashMarkers ? 'Hide' : 'Show' }}
+        </button>
+        <button 
+          class="clear-crash-btn"
+          @click="clearCrashMarkers" 
+          title="Permanently clear crash events from database"
+        >
+          <X :size="14" />
+          Clear All
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -501,6 +549,12 @@ onUnmounted(() => {
   justify-content: space-between;
 }
 
+.crash-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .crash-indicator {
   display: flex;
   align-items: center;
@@ -512,6 +566,59 @@ onUnmounted(() => {
   color: #ef4444;
   font-size: 11px;
   font-weight: 500;
+}
+
+.toggle-crash-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #888;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-crash-btn:hover {
+  background: #333;
+  color: #fff;
+  border-color: #444;
+}
+
+.toggle-crash-btn.hidden {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.toggle-crash-btn.hidden:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.clear-crash-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-crash-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ff5555;
 }
 
 @keyframes pulse {

@@ -187,6 +187,22 @@ export const api = {
     return res.json();
   },
 
+  async deleteCrashEvents(vehicleId) {
+    const res = await fetch(`${API_BASE}/driving-behavior/vehicle/${vehicleId}/crashes`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || `HTTP error! status: ${res.status}`);
+    }
+    
+    return res.json();
+  },
+
   async getDrivingBehavior(vehicleId) {
     const res = await fetch(`${API_BASE}/driving-behavior/vehicle/${vehicleId}`);
     return res.json();
