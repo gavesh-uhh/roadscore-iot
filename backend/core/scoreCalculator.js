@@ -11,6 +11,8 @@ Live data type structure
 @author Gavesh Saparamadu
 */
 
+const GRAVITY = 9.81;
+
 const EVENTS = {
     CRASH: { type: 'Crash Detected', alertType: 'crash_detected', severity: 'high', penalty: 100 },
     HARD_BRAKE: { type: 'Hard Break Found', alertType: 'hard_brake', severity: 'medium', penalty: 50 },
@@ -39,18 +41,25 @@ function checkForCrash(data, events) {
     Math.pow(accelerationData.x, 2) +
       Math.pow(accelerationData.y, 2) +
       Math.pow(accelerationData.z, 2),
-  ); //  pythagorean theorem  used here to calc the accel from all axis
+  );
+
+  const excessAcceleration = Math.abs(allAcceleration - GRAVITY); // subtract gravity baseline
 
   const previousSpeed = data.previous.speed;
   const currentSpeed = data.current.speed;
   const suddenSpeedDrop = previousSpeed - currentSpeed;
 
-  if (soundBlast || allAcceleration > 5 || suddenSpeedDrop > 40) {
-    console.log("[Crash] Sound Blast: " + soundBlast + ", All Acceleration: " + allAcceleration.toFixed(2) + ", Sudden Speed Drop: " + suddenSpeedDrop.toFixed(2) + " km/h, Previous Speed: " + previousSpeed + " km/h, Current Speed: " + currentSpeed + " km/h");
+  let indicators = 0;
+  if (soundBlast) indicators++;
+  if (excessAcceleration > 4) indicators++;
+  if (suddenSpeedDrop > 30) indicators++;
+
+  if (indicators >= 2) {
+    console.log("[Crash] Sound Blast: " + soundBlast + ", Excess Acceleration: " + excessAcceleration.toFixed(2) + "g (raw: " + allAcceleration.toFixed(2) + "), Sudden Speed Drop: " + suddenSpeedDrop.toFixed(2) + " km/h, Previous Speed: " + previousSpeed + " km/h, Current Speed: " + currentSpeed + " km/h, Indicators: " + indicators + "/3");
     // return pushEvent(
     //   events,
     //   EVENTS.CRASH,
-    //   { soundBlast, allAcceleration, suddenSpeedDrop },"Crash Detected from sensors of sound and acceleration data",);
+    //   { soundBlast, excessAcceleration, suddenSpeedDrop },"Crash Detected from sensors of sound and acceleration data",);
   }
 
   return 0;
@@ -68,26 +77,22 @@ function checkForHardBrake(data, events) {
     const rollChange = Math.abs(current.gyroscope.roll - previous.gyroscope.roll);
     const vibrationDetected = current.vibration === true;
     const timeSeconds = timeDelta / 1000;
-    const rapidStop = speedDrop > 5 && timeSeconds < 1;
-    const strongDeceleration = deceleration < -0.4;
-    const highYawRotation = yawChange > 0.3;
-    const tiltDetected = rollChange > 0.2;
+
+    const significantSpeedDrop = speedDrop > 15 && timeSeconds < 2;
+    const strongDeceleration = deceleration < -2.0;
 
     if (
-        rapidStop &&
+        significantSpeedDrop &&
         strongDeceleration &&
-        highYawRotation &&
-        tiltDetected &&
-        vibrationDetected &&
         previous.speed > 10
     ) {
 
-        console.log("[Hard Brake] Speed Drop: " + speedDrop.toFixed(2) + " km/h, Deceleration: " + deceleration.toFixed(2) + ", Yaw Change: " + yawChange.toFixed(2) + ", Roll Change: " + rollChange.toFixed(2) + ", Vibration: " + vibrationDetected + ", Time: " + timeSeconds.toFixed(2) + "s, Previous Speed: " + previous.speed + " km/h");
+        console.log("[Hard Brake] Speed Drop: " + speedDrop.toFixed(2) + " km/h, Deceleration: " + deceleration.toFixed(2) + "g, Yaw Change: " + yawChange.toFixed(2) + ", Roll Change: " + rollChange.toFixed(2) + ", Vibration: " + vibrationDetected + ", Time: " + timeSeconds.toFixed(2) + "s, Previous Speed: " + previous.speed + " km/h");
         // return pushEvent(
         //     events,
-        //     EVENTS.HAND_BRAKE,
+        //     EVENTS.HARD_BRAKE,
         //     deceleration,
-        //     "Possible handbrake maneuver detected"
+        //     "Hard braking detected"
         // );
     }
 
@@ -103,12 +108,12 @@ function checkForSharpCornering(data, events) {
 
   const corneringThreshold = Math.max(roll, yaw);
 
-  if (corneringThreshold > 0.7) {
+  if (corneringThreshold > 5.0) {
     // return pushEvent(
     //   events,
     //   EVENTS.SHARP_CORNER,
     //   corneringThreshold,"Sharp Cornering Detected from sensors of gyroscope data",);
-    console.log("[Sharp Corner] Gyro Roll: " + roll.toFixed(2) + ", Gyro Yaw: " + yaw.toFixed(2));
+    console.log("[Sharp Corner] Gyro Roll: " + roll.toFixed(2) + " deg/s, Gyro Yaw: " + yaw.toFixed(2) + " deg/s, Threshold: " + corneringThreshold.toFixed(2));
   }
 
   return 0;
@@ -120,8 +125,8 @@ function checkForHarshAcceleration(data, events) {
 
   const suddenSpeedIncrease = currentSpeed - previousSpeed;
 
-  if (suddenSpeedIncrease > 20) {
-    console.log("[Harsh Acceleration] Detected: " + suddenSpeedIncrease + " km/h");
+  if (suddenSpeedIncrease > 20 && previousSpeed > 5) {
+    console.log("[Harsh Acceleration] Detected: " + suddenSpeedIncrease.toFixed(2) + " km/h increase, Previous Speed: " + previousSpeed + " km/h, Current Speed: " + currentSpeed + " km/h");
     // return pushEvent(
     //   events,
     //   EVENTS.HARSH_ACCELERATION,
@@ -136,16 +141,17 @@ function checkForHarshAcceleration(data, events) {
 function checkForPothole(data, events) {
   const vibration = data.current.vibration;
   const jumpForce = data.current.acceleration.z;
+  const excessZ = Math.abs(jumpForce - GRAVITY); 
 
-  if (vibration === true || jumpForce > 1) {
-    console.log("[Pothole] Detected: Jump Force - " + jumpForce
-    );
+  // trigger on strong vertical impact, or moderate impact with vibration confirmation
+  if (excessZ > 3 || (vibration === true && excessZ > 1.5)) {
+    console.log("[Pothole] Excess Z: " + excessZ.toFixed(2) + "g (raw Z: " + jumpForce.toFixed(3) + "), Vibration: " + vibration);
     
     return 0;
     // return pushEvent(
     //   events,
     //   EVENTS.POTHOLE,
-    //   { vibration, jumpForce },"Pothole or Bump Found from sensors of vibration and acceleration of Z axis data",);
+    //   { vibration, jumpForce, excessZ },"Pothole or Bump Found from sensors of vibration and acceleration of Z axis data",);
   }
 
   return 0;
@@ -153,16 +159,12 @@ function checkForPothole(data, events) {
 
 
 function checkForOverspeed(data, events) {
-
     const { current, previous } = data;
 
     if (!current) return 0;
-
     const SPEED_LIMIT = 60;
-
     const currentSpeed = current.speed;
     const previousSpeed = previous ? previous.speed : 0;
-
     const isOverspeeding = currentSpeed > SPEED_LIMIT;
     const wasOverspeeding = previousSpeed > SPEED_LIMIT;
 
