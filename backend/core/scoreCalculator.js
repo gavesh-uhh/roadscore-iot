@@ -287,45 +287,6 @@ function checkForOverspeed(data, events) {
   return 0;
 }
 
-function checkForUnderspeed(data, events) {
-  const { current, previous } = data;
-
-  if (!current) return 0;
-
-  const MIN_SPEED = 10;
-
-  const currentSpeed = current.speed;
-  const previousSpeed = previous ? previous.speed : 0;
-
-  const isUnderspeeding = currentSpeed < MIN_SPEED;
-  const wasUnderspeeding = previousSpeed < MIN_SPEED;
-
-  // skip if previous speed was 0 (device just came online, no real prior reading)
-  const triggered = isUnderspeeding && !wasUnderspeeding && previousSpeed > 0;
-
-  if (triggered) {
-    console.log(
-      "[Underspeed Check] " +
-        JSON.stringify({
-          triggered,
-          speed: {
-            current: currentSpeed.toFixed(2),
-            previous: previousSpeed.toFixed(2),
-          },
-          minSpeed: MIN_SPEED,
-        }),
-    );
-    return pushEvent(
-      events,
-      EVENTS.UNDERSPEED,
-      currentSpeed,
-      `Vehicle speed dropped below minimum threshold of ${MIN_SPEED} km/h`,
-    );
-  }
-
-  return 0;
-}
-
 function calculateScore(data) {
   if (!data.previous) return null;
 
@@ -338,7 +299,6 @@ function calculateScore(data) {
   score -= checkForHarshAcceleration(data, events);
   score -= checkForPothole(data, events);
   score -= checkForOverspeed(data, events);
-  score -= checkForUnderspeed(data, events);
 
   score = Math.max(0, score);
   if (events.length === 0) return null;
