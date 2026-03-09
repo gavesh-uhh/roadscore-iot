@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.29"
+    "dotenv": "^17.3.1",
+    "echarts": "^6.0.0",
+    "firebase": "^12.10.0",
+    "leaflet": "^1.9.4",
+    "lucide-vue-next": "^0.576.0",
+    "vue": "^3.5.29",
+    "vue-echarts": "^8.0.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.4",
