@@ -1,47 +1,62 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { ref, onMounted } from 'vue'
+import LoginPage from './components/LoginPage.vue'
+import SignupPage from './components/SignupPage.vue'
+import Dashboard from './components/Dashboard.vue'
+import { api } from './api'
+
+const currentPage = ref('login')
+const user = ref(null)
+
+onMounted(() => {
+  // Check if user is already logged in
+  const savedUser = api.getUser()
+  if (savedUser) {
+    user.value = savedUser
+    currentPage.value = 'dashboard'
+  }
+})
+
+const handleLoginSuccess = (userData) => {
+  user.value = userData
+  currentPage.value = 'dashboard'
+}
+
+const handleSignupSuccess = (userData) => {
+  user.value = userData
+  currentPage.value = 'dashboard'
+}
+
+const handleLogout = () => {
+  api.logout()
+  user.value = null
+  currentPage.value = 'login'
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <LoginPage 
+    v-if="currentPage === 'login'" 
+    @switch-to-signup="currentPage = 'signup'" 
+    @login-success="handleLoginSuccess"
+  />
+  <SignupPage 
+    v-else-if="currentPage === 'signup'" 
+    @switch-to-login="currentPage = 'login'" 
+    @signup-success="handleSignupSuccess"
+  />
+  <Dashboard 
+    v-else 
+    :user="user" 
+    @logout="handleLogout"
+  />
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+<style>
+#app {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 </style>
