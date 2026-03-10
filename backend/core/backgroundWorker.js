@@ -6,8 +6,11 @@ const OFFLINE_THRESHOLD = 30000;
 const previousReadings = {};
 const deviceStatus = {};
 let intervalId = null;
+let isRunning = false;
 
 async function tick() {
+    if (isRunning) return;
+    isRunning = true;
     try {
         const [liveDataAll, vehiclesAll] = await Promise.all([
             getCollection('liveData'),
@@ -108,7 +111,7 @@ async function tick() {
                 currentScore: result.score,
                 previousScore: oldScore,
                 lastCalculated: Date.now(),
-                totalTrips: data.currentScore ? data.currentScore.totalTrips : 0,
+                totalTrips: (data.currentScore ? data.currentScore.totalTrips : 0) + 1,
                 averageScore: data.currentScore
                     ? Math.round(((data.currentScore.averageScore * data.currentScore.totalTrips) + result.score) / (data.currentScore.totalTrips + 1))
                     : result.score
@@ -194,6 +197,8 @@ async function tick() {
         }
     } catch (error) {
         console.error('[Worker] Error:', error.message);
+    } finally {
+        isRunning = false;
     }
 }
 

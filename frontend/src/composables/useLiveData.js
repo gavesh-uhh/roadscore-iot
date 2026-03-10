@@ -211,10 +211,7 @@ export function useLiveData(deviceId = 'esp32_001') {
         driverScore.value = Math.round(scoreData.currentScore / 10)
       } catch (error) {
         console.error('Failed to fetch driver score:', error)
-        driverScore.value = 100 
       }
-    } else {
-      driverScore.value = 100 
     }
     
     timeLabels.value.push(timeStr)
