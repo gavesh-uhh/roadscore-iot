@@ -39,13 +39,17 @@ a:hover {
 }
 
 ::-webkit-scrollbar-track {
-  background: #161616;
+  background: #1a1f2e;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
   border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #a78bfa, #c4b5fd);
 }
 
 ::-webkit-scrollbar-thumb:hover {

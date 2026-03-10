@@ -1,5 +1,5 @@
 :root {
-  /* Theme Colors */
+  /* Theme Colors - Modern Dark Slate */
   --bg-primary: #0f1419;
   --bg-secondary: #1a1f2e;
   --bg-tertiary: #252b3b;
@@ -7,12 +7,12 @@
   --bg-input: #252b3b;
   
   --text-primary: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
+  --text-secondary: #c4b5fd;
+  --text-muted: #94a3b8;
   
-  --accent-primary: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-danger: #ef4444;
+  --accent-primary: #8b5cf6;
+  --accent-hover: #a78bfa;
+  --accent-danger: #f43f5e;
   
   /* Legacy Colors */
   --vt-c-white: #ffffff;
@@ -23,7 +23,7 @@
   --vt-c-black-soft: #1a1f2e;
   --vt-c-black-mute: #252b3b;
 
-  --vt-c-indigo: #3b82f6;
+  --vt-c-indigo: #8b5cf6;
 
   --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
   --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
@@ -77,7 +77,7 @@ html, body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  background: #0a0a0a;
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
   color: #fff;
   line-height: 1.6;
   font-family:
