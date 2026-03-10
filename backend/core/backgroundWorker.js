@@ -86,9 +86,9 @@ async function tick() {
                 } : null,
                 timeDelta,
                 currentScore: existingScore ? {
-                    currentScore: existingScore.currentScore || 1000,
-                    previousScore: existingScore.previousScore || 1000,
-                    averageScore: existingScore.averageScore || 1000,
+                    currentScore: existingScore.currentScore ?? 1000,
+                    previousScore: existingScore.previousScore ?? 1000,
+                    averageScore: existingScore.averageScore ?? 1000,
                     totalTrips: existingScore.totalTrips || 0,
                     lastCalculated: existingScore.lastCalculated || 0
                 } : null
