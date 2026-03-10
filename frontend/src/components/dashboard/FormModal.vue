@@ -46,7 +46,7 @@ defineEmits(['close', 'save'])
 }
 
 .modal {
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   width: 100%;
@@ -68,7 +68,7 @@ defineEmits(['close', 'save'])
 }
 
 .icon-btn {
-  background: #222;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
   color: #888;
@@ -124,7 +124,7 @@ defineEmits(['close', 'save'])
 }
 
 .btn.secondary {
-  background: #222;
+  background: var(--bg-tertiary);
   color: #888;
 }
 

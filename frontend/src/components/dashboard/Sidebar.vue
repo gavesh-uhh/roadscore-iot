@@ -69,7 +69,7 @@ const navItems = computed(() => {
 .sidebar {
   width: 240px;
   height: 100vh;
-  background: #161616;
+  background: var(--bg-secondary);
   border-right: 1px solid #222;
   display: flex;
   flex-direction: column;
@@ -135,7 +135,7 @@ const navItems = computed(() => {
 }
 
 .nav-item:hover {
-  background: #222;
+  background: var(--bg-tertiary);
   color: #fff;
 }
 

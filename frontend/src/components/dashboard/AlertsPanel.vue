@@ -182,7 +182,7 @@ onMounted(() => {
 }
 
 .alert-bell {
-  background: #222;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
   color: #888;
@@ -228,7 +228,7 @@ onMounted(() => {
   margin-top: 10px;
   width: 350px;
   max-height: 450px;
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -278,7 +278,7 @@ onMounted(() => {
 }
 
 .clear-all-btn {
-  background: #222;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 6px;
   color: #ef4444;
@@ -333,7 +333,7 @@ onMounted(() => {
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 8px;
-  background: #1a1a1a;
+  background: var(--bg-card);
   border-left: 3px solid #666;
   transition: all 0.15s ease;
 }
@@ -424,7 +424,7 @@ onMounted(() => {
 }
 
 .action-btn {
-  background: #222;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 4px;
   padding: 6px;

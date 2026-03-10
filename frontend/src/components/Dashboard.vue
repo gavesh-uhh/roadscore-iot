@@ -270,7 +270,7 @@ onMounted(async () => {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background: #0f0f0f;
+  background: var(--bg-primary);
   color: #fff;
 }
 
@@ -299,7 +299,7 @@ onMounted(async () => {
   align-items: center;
   gap: 15px;
   padding: 15px 20px;
-  background: #1a1a1a;
+  background: var(--bg-card);
   border-radius: 10px;
   margin-bottom: 20px;
 }
@@ -314,7 +314,7 @@ onMounted(async () => {
   flex: 1;
   max-width: 400px;
   padding: 10px 15px;
-  background: #222;
+  background: var(--bg-tertiary);
   border: 1px solid #333;
   border-radius: 8px;
   color: #fff;

@@ -52,7 +52,7 @@ const tabs = [
   display: flex;
   align-items: center;
   padding: 15px 25px;
-  background: #161616;
+  background: var(--bg-secondary);
   border-bottom: 1px solid #222;
 }
 
@@ -74,7 +74,7 @@ const tabs = [
 }
 
 .tab-btn:hover {
-  background: #222;
+  background: var(--bg-tertiary);
   color: #fff;
 }
 
@@ -89,7 +89,7 @@ const tabs = [
 
 .vehicle-select {
   padding: 10px 15px;
-  background: #222;
+  background: var(--bg-tertiary);
   border: 1px solid #333;
   border-radius: 8px;
   color: #fff;
@@ -106,14 +106,14 @@ const tabs = [
 
 .single-vehicle-badge {
   padding: 10px 25px;
-  background: #161616;
+  background: var(--bg-secondary);
   border-bottom: 1px solid #222;
   color: #888;
   font-size: 13px;
 }
 
 .single-vehicle-badge span {
-  background: #222;
+  background: var(--bg-tertiary);
   padding: 6px 12px;
   border-radius: 6px;
   color: #3b82f6;

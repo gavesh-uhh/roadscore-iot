@@ -80,7 +80,7 @@ defineProps({
 }
 
 .stat-card {
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   padding: 20px;
@@ -163,7 +163,7 @@ defineProps({
   color: #ef4444;
 }
 .stat-icon.purple { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
-.stat-icon.gray { background: #222; color: #666; }
+.stat-icon.gray { background: var(--bg-tertiary); color: #666; }
 
 .stat-info {
   display: flex;

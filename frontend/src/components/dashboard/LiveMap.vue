@@ -328,7 +328,7 @@ onUnmounted(() => {
 
 <style scoped>
 .live-map-container {
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   overflow: hidden;
@@ -339,7 +339,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #1a1a1a;
+  background: var(--bg-card);
   border-bottom: 1px solid #222;
 }
 
@@ -417,7 +417,7 @@ onUnmounted(() => {
 .map {
   width: 100%;
   height: 100%;
-  background: #1a1a1a;
+  background: var(--bg-card);
 }
 
 .loading-overlay {
@@ -458,7 +458,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 20px;
   padding: 12px 16px;
-  background: #1a1a1a;
+  background: var(--bg-card);
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
 }
@@ -542,7 +542,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: #1a1a1a;
+  background: var(--bg-card);
   border-top: 1px solid #222;
   color: #666;
   font-size: 12px;

@@ -60,12 +60,12 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0f0f0f;
+  background: var(--bg-primary);
   padding: 20px;
 }
 
 .auth-card {
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   padding: 40px;
@@ -103,7 +103,7 @@ label {
 input {
   width: 100%;
   padding: 12px 15px;
-  background: #222;
+  background: var(--bg-tertiary);
   border: 1px solid #333;
   border-radius: 8px;
   color: #fff;

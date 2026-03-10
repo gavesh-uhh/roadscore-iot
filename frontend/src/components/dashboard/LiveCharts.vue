@@ -365,7 +365,7 @@ onUnmounted(() => {
 }
 
 .chart-card {
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   padding: 20px;

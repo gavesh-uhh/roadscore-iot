@@ -116,7 +116,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 }
 
 .card {
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   padding: 20px;
@@ -183,7 +183,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 
 .badge {
   padding: 4px 12px;
-  background: #222;
+  background: var(--bg-tertiary);
   border-radius: 6px;
   font-size: 12px;
   color: #00d4aa;
@@ -199,7 +199,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 }
 
 .icon-btn {
-  background: #222;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
   color: #888;

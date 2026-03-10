@@ -85,7 +85,7 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .modal {
-  background: #161616;
+  background: var(--bg-secondary);
   border: 1px solid #222;
   border-radius: 12px;
   width: 100%;
@@ -149,7 +149,7 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .icon-btn {
-  background: #222;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
   color: #888;
@@ -200,7 +200,7 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .btn.secondary {
-  background: #222;
+  background: var(--bg-tertiary);
   color: #fff;
 }
 

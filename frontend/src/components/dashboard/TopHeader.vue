@@ -50,7 +50,7 @@ defineEmits(['update:searchQuery', 'logout'])
   align-items: center;
   justify-content: space-between;
   padding: 15px 25px;
-  background: #161616;
+  background: var(--bg-secondary);
   border-bottom: 1px solid #222;
 }
 
@@ -70,7 +70,7 @@ defineEmits(['update:searchQuery', 'logout'])
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #222;
+  background: var(--bg-tertiary);
   padding: 8px 15px;
   border-radius: 8px;
   color: #666;
@@ -89,7 +89,7 @@ defineEmits(['update:searchQuery', 'logout'])
 }
 
 .icon-btn {
-  background: #222;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
   color: #888;

@@ -115,7 +115,7 @@ defineEmits(['update:formData'])
 .form-group textarea {
   width: 100%;
   padding: 12px 15px;
-  background: #222;
+  background: var(--bg-tertiary);
   border: 1px solid #333;
   border-radius: 8px;
   color: #fff;
