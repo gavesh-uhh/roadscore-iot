@@ -69,6 +69,10 @@ const {
 
 const currentSection = ref('dashboard')
 const sidebarCollapsed = ref(false)
+const scoreAnimating = ref(false)
+const previousScore = ref(85)
+const drivingEvents = ref([])
+const lastViolation = ref(null)
 
 const chartsRef = ref(null)
 
@@ -111,6 +115,225 @@ watch(selectedVehicleId, (newId) => {
   }
 })
 
+// Watch for score changes and animate
+watch(driverScore, (newScore, oldScore) => {
+  if (oldScore !== undefined && newScore !== oldScore) {
+    previousScore.value = oldScore
+    scoreAnimating.value = true
+    
+    // Add event based on score change
+    const scoreDiff = newScore - oldScore
+    const scoreEvent = getScoreChangeEvent(scoreDiff, newScore, lastViolation.value)
+    
+    drivingEvents.value.unshift(scoreEvent)
+    if (drivingEvents.value.length > 10) {
+      drivingEvents.value = drivingEvents.value.slice(0, 10)
+    }
+    
+    // Clear last violation after using it
+    if (scoreDiff < 0) {
+      lastViolation.value = null
+    }
+    
+    setTimeout(() => {
+      scoreAnimating.value = false
+    }, 600)
+  }
+})
+
+// Watch for live data changes and add events
+watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soundDetected, liveData.value.acceleration, liveData.value.gyroscope], ([speed, vibration, sound, accel, gyro], [prevSpeed]) => {
+  const events = []
+  
+  if (speed > 120) {
+    lastViolation.value = { type: 'critical_speed', value: speed }
+    events.push({
+      id: Date.now(),
+      timestamp: new Date(),
+      type: 'danger',
+      message: `Critical speed: ${speed} km/h - Reduce speed immediately`,
+      reason: 'Excessive speed increases accident risk and reduces score significantly',
+      icon: 'alert-triangle'
+    })
+  } else if (speed > 100) {
+    lastViolation.value = { type: 'high_speed', value: speed }
+    events.push({
+      id: Date.now() + 1,
+      timestamp: new Date(),
+      type: 'warning',
+      message: `High speed detected: ${speed} km/h`,
+      reason: 'Speeding affects your safety score negatively',
+      icon: 'alert-circle'
+    })
+  }
+  
+  // Check for harsh acceleration
+  if (accel) {
+    const accelMagnitude = Math.sqrt(
+      Math.pow(accel.x || 0, 2) +
+      Math.pow(accel.y || 0, 2) +
+      Math.pow(accel.z || 0, 2)
+    )
+    if (accelMagnitude > 3.0) {
+      lastViolation.value = { type: 'harsh_acceleration', value: accelMagnitude.toFixed(1) }
+      events.push({
+        id: Date.now() + 4,
+        timestamp: new Date(),
+        type: 'warning',
+        message: `Harsh acceleration detected: ${accelMagnitude.toFixed(1)} m/s²`,
+        reason: 'Sudden acceleration reduces driver score and passenger comfort',
+        icon: 'alert-circle'
+      })
+    }
+  }
+  
+  // Check for excessive tilting
+  if (gyro) {
+    if (Math.abs(gyro.pitch || 0) > 15) {
+      lastViolation.value = { type: 'excessive_pitch', value: gyro.pitch.toFixed(1) }
+      events.push({
+        id: Date.now() + 5,
+        timestamp: new Date(),
+        type: 'danger',
+        message: `Excessive pitch angle: ${gyro.pitch.toFixed(1)}°`,
+        reason: 'Extreme vehicle tilting indicates dangerous driving behavior',
+        icon: 'alert-triangle'
+      })
+    }
+    if (Math.abs(gyro.roll || 0) > 15) {
+      lastViolation.value = { type: 'excessive_roll', value: gyro.roll.toFixed(1) }
+      events.push({
+        id: Date.now() + 6,
+        timestamp: new Date(),
+        type: 'danger',
+        message: `Excessive roll angle: ${gyro.roll.toFixed(1)}°`,
+        reason: 'Sharp turns or rollover risk detected',
+        icon: 'alert-triangle'
+      })
+    }
+  }
+  
+  if (vibration) {
+    lastViolation.value = { type: 'vibration', value: true }
+    events.push({
+      id: Date.now() + 2,
+      timestamp: new Date(),
+      type: 'warning',
+      message: 'Abnormal vibration detected',
+      reason: 'May indicate rough driving or road hazards',
+      icon: 'waves'
+    })
+  }
+  
+  if (sound) {
+    events.push({
+      id: Date.now() + 3,
+      timestamp: new Date(),
+      type: 'info',
+      message: 'Unusual sound detected',
+      reason: 'Vehicle monitoring for potential issues',
+      icon: 'volume-2'
+    })
+  }
+  
+  // Add events to the list
+  events.forEach(event => {
+    const exists = drivingEvents.value.some(e => 
+      e.message === event.message && 
+      (Date.now() - new Date(e.timestamp).getTime()) < 5000
+    )
+    if (!exists) {
+      drivingEvents.value.unshift(event)
+    }
+  })
+  
+  // Keep only last 10 events
+  if (drivingEvents.value.length > 10) {
+    drivingEvents.value = drivingEvents.value.slice(0, 10)
+  }
+}, { deep: true })
+
+function getScoreChangeEvent(change, currentScore, violation) {
+  const event = {
+    id: Date.now(),
+    timestamp: new Date(),
+    type: change > 0 ? 'improvement' : 'penalty',
+    change: change,
+    icon: change > 0 ? 'trend-up' : 'trend-down'
+  }
+  
+  if (change > 0) {
+    if (change >= 5) {
+      event.message = `Excellent driving! +${change} points`
+      event.reason = 'Consistent safe driving behavior rewarded'
+    } else {
+      event.message = `Good driving behavior +${change} points`
+      event.reason = 'Maintaining safe driving practices'
+    }
+  } else {
+    if (change <= -5) {
+      if (violation) {
+        event.message = `Major violation! ${change} points`
+        event.reason = getViolationReason(violation)
+      } else {
+        event.message = `Major violation! ${change} points`
+        event.reason = 'Severe driving behavior detected'
+      }
+    } else {
+      if (violation) {
+        event.message = `Poor driving behavior ${change} points`
+        event.reason = getViolationReason(violation)
+      } else {
+        event.message = `Poor driving behavior ${change} points`
+        event.reason = 'Unsafe driving detected'
+      }
+    }
+  }
+  
+  return event
+}
+
+function getViolationReason(violation) {
+  if (!violation) return 'Multiple safety violations detected'
+  
+  switch (violation.type) {
+    case 'critical_speed':
+      return `Critical speed violation: ${violation.value} km/h exceeds safe limits`
+    case 'high_speed':
+      return `Speeding detected at ${violation.value} km/h`
+    case 'harsh_acceleration':
+      return `Harsh acceleration: ${violation.value} m/s² detected`
+    case 'excessive_pitch':
+      return `Dangerous pitch angle: ${violation.value}° indicates aggressive braking or acceleration`
+    case 'excessive_roll':
+      return `Dangerous roll angle: ${violation.value}° indicates sharp cornering`
+    case 'vibration':
+      return 'Abnormal vibration indicates rough or reckless driving'
+    default:
+      return 'Safety violation detected'
+  }
+}
+
+function getScoreChangeMessage(change, currentScore) {
+  if (change > 0) {
+    if (change >= 5) return `Excellent driving! +${change} points`
+    return `Good driving behavior +${change} points`
+  } else {
+    if (change <= -5) return `Major violation! ${change} points`
+    return `Poor driving behavior ${change} points`
+  }
+}
+
+function formatEventTime(timestamp) {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diff = now - date
+  
+  if (diff < 60000) return 'Just now'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+}
+
 onMounted(async () => {
   await fetchAll()
   
@@ -143,7 +366,11 @@ onMounted(async () => {
         :isAdmin="isAdmin"
         :showSearch="currentSection !== 'dashboard' && currentSection !== 'trips'"
         :showLogout="!isAdmin"
+        :showVehicleSelector="isAdmin && currentSection === 'dashboard'"
+        :vehicles="vehicles"
+        :selectedVehicleId="selectedVehicleId"
         v-model:searchQuery="searchQuery"
+        @update:selectedVehicleId="selectedVehicleId = $event"
         @logout="$emit('logout')"
       />
       
@@ -158,16 +385,6 @@ onMounted(async () => {
       />
       
       <section v-if="currentSection === 'dashboard'" class="content-area dashboard-section">
-        <div v-if="isAdmin" class="admin-vehicle-selector">
-          <label>Select Vehicle to Monitor:</label>
-          <select v-model="selectedVehicleId" class="vehicle-select">
-            <option value="">-- Select a Vehicle --</option>
-            <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
-              {{ vehicle.plateNumber }} - {{ vehicle.model }}
-            </option>
-          </select>
-        </div>
-        
         <div v-if="!isAdmin && !hasVehicleSelected" class="no-vehicle-message">
           <h2>No Vehicle Assigned</h2>
           <p>Please contact your administrator to assign a vehicle to your account.</p>
@@ -179,21 +396,72 @@ onMounted(async () => {
         </div>
         
         <template v-else>
-          <div class="stats-fixed">
-            <LiveStats :liveData="liveData" :driverScore="driverScore" />
-          </div>
-          <div class="charts-scroll">
-            <LiveCharts
-              ref="chartsRef"
-              :speedHistory="speedHistory"
-              :accelXHistory="accelXHistory"
-              :accelYHistory="accelYHistory"
-              :accelZHistory="accelZHistory"
-              :gyroPitchHistory="gyroPitchHistory"
-              :gyroRollHistory="gyroRollHistory"
-              :gyroYawHistory="gyroYawHistory"
-              :timeLabels="timeLabels"
-            />
+          <div class="dashboard-layout">
+            <div class="driver-score-hero">
+              <div class="score-badge" 
+                   :class="[
+                     driverScore >= 80 ? 'score-excellent' : driverScore >= 60 ? 'score-good' : 'score-poor',
+                     { 'score-animating': scoreAnimating }
+                   ]">
+                <div class="score-value" :class="{ 'value-animating': scoreAnimating }">{{ driverScore }}</div>
+                <div class="score-label">Driver Score</div>
+                <div class="score-subtitle">Real-time Performance Rating</div>
+              </div>
+            </div>
+            
+            <!-- Driving Events List -->
+            <div class="events-section">
+              <div class="events-header">
+                <h3>Recent Driving Events</h3>
+                <span class="events-count">{{ drivingEvents.length }} Events</span>
+              </div>
+              <div class="events-list" v-if="drivingEvents.length > 0">
+                <div v-for="event in drivingEvents" :key="event.id" class="event-item" :class="`event-${event.type}`">
+                  <div class="event-icon">
+                    <svg v-if="event.type === 'improvement'" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    <svg v-else-if="event.type === 'penalty'" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
+                    </svg>
+                    <svg v-else-if="event.type === 'danger'" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <svg v-else-if="event.type === 'warning'" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <svg v-else class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div class="event-content">
+                    <div class="event-message">{{ event.message }}</div>
+                    <div class="event-reason" v-if="event.reason">{{ event.reason }}</div>
+                  </div>
+                  <div class="event-time">{{ formatEventTime(event.timestamp) }}</div>
+                </div>
+              </div>
+              <div class="events-empty" v-else>
+                <p>No recent events. Drive safely!</p>
+              </div>
+            </div>
+            
+            <div class="stats-below">
+              <LiveStats :liveData="liveData" />
+            </div>
+            <div class="charts-scroll">
+              <LiveCharts
+                ref="chartsRef"
+                :speedHistory="speedHistory"
+                :accelXHistory="accelXHistory"
+                :accelYHistory="accelYHistory"
+                :accelZHistory="accelZHistory"
+                :gyroPitchHistory="gyroPitchHistory"
+                :gyroRollHistory="gyroRollHistory"
+                :gyroYawHistory="gyroYawHistory"
+                :timeLabels="timeLabels"
+              />
+            </div>
           </div>
         </template>
       </section>
@@ -292,49 +560,334 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 0;
 }
 
-.admin-vehicle-selector {
+.dashboard-layout {
   display: flex;
+  flex-direction: column;
+  gap: 35px;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 30px;
+}
+
+.driver-score-hero {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 15px;
-  padding: 15px 20px;
-  background: var(--bg-card);
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
-.admin-vehicle-selector label {
-  color: #888;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.admin-vehicle-selector .vehicle-select {
-  flex: 1;
-  max-width: 400px;
-  padding: 10px 15px;
-  background: var(--bg-tertiary);
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.admin-vehicle-selector .vehicle-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.stats-fixed {
+  padding: 40px 20px;
   flex-shrink: 0;
 }
 
-.charts-scroll {
-  flex: 1;
+.score-badge {
+  position: relative;
+  padding: 50px 70px;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 50%, #1a1f2e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 350px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 80px rgba(139, 92, 246, 0.15),
+    inset 0 1px 0 rgba(167, 139, 250, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.score-badge::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, transparent, transparent);
+  border-radius: 25px;
+  z-index: -1;
+  transition: all 0.4s ease;
+}
+
+.score-badge.score-excellent::before {
+  background: linear-gradient(135deg, #22c55e, #16a34a, #22c55e);
+  opacity: 0.6;
+}
+
+.score-badge.score-good::before {
+  background: linear-gradient(135deg, #f59e0b, #d97706, #f59e0b);
+  opacity: 0.6;
+}
+
+.score-badge.score-poor::before {
+  background: linear-gradient(135deg, #ef4444, #dc2626, #ef4444);
+  opacity: 0.6;
+}
+
+/* Score change animation */
+.score-badge.score-animating {
+  animation: scoreChange 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes scoreChange {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15) rotateZ(2deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.score-value.value-animating {
+  animation: valueFlash 0.6s ease-in-out;
+}
+
+@keyframes valueFlash {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.4));
+  }
+  50% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 40px rgba(59, 130, 246, 0.9));
+  }
+}
+
+.score-value {
+  font-size: 140px;
+  font-weight: 900;
+  background: linear-gradient(180deg, #ffffff 0%, #e0e7ff 40%, #c4b5fd 70%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 0.9;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 8px 24px rgba(139, 92, 246, 0.5));
+  letter-spacing: -4px;
+}
+
+.score-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #c4b5fd;
+  text-transform: uppercase;
+  letter-spacing: 6px;
+  position: relative;
+  z-index: 1;
+  opacity: 0.9;
+  text-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+}
+
+.score-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: -8px;
+}
+
+/* Events Section */
+.events-section {
+  background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 100%);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 16px;
+  padding: 25px;
+  margin: 0;
+  width: 100%;
+}
+
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.events-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin: 0;
+}
+
+.events-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(139, 92, 246, 0.15);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
   overflow-y: auto;
-  padding-top: 20px;
+  padding-right: 8px;
+}
+
+.events-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.events-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.events-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  border-radius: 2px;
+}
+
+.event-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.event-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(4px);
+}
+
+.event-improvement {
+  border-left-color: #22c55e;
+}
+
+.event-penalty {
+  border-left-color: #ef4444;
+}
+
+.event-danger {
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.event-warning {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.event-info {
+  border-left-color: #8b5cf6;
+}
+
+.event-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.event-improvement .event-icon {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.event-penalty .event-icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.event-danger .event-icon {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.event-warning .event-icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.event-info .event-icon {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.event-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.event-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event-message {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e7eb;
+  line-height: 1.4;
+}
+
+.event-reason {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.event-time {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.events-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+}
+
+.events-empty p {
+  font-size: 14px;
+  margin: 0;
+}
+
+.stats-below {
+  flex-shrink: 0;
+  padding: 0 5px;
+}
+
+.charts-scroll {
+  flex-shrink: 0;
+  min-height: 400px;
+  padding: 0 5px;
 }
 
 .no-vehicle-message {
@@ -380,21 +933,59 @@ onMounted(async () => {
   }
   
   .dashboard-section {
-    overflow: visible;
+    overflow: hidden;
   }
   
-  .charts-scroll {
-    overflow: visible;
+  .dashboard-layout {
+    gap: 20px;
   }
   
-  .admin-vehicle-selector {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+  .driver-score-hero {
+    padding: 20px 10px;
   }
   
-  .admin-vehicle-selector .vehicle-select {
-    max-width: none;
+  .score-badge {
+    padding: 35px 40px;
+    min-width: 280px;
+  }
+  
+  .score-value {
+    font-size: 100px;
+    letter-spacing: -2px;
+  }
+  
+  .score-label {
+    font-size: 16px;
+    letter-spacing: 4px;
+  }
+  
+  .score-subtitle {
+    font-size: 10px;
+  }
+  
+  .events-section {
+    padding: 15px;
+  }
+  
+  .events-header h3 {
+    font-size: 16px;
+  }
+  
+  .events-list {
+    max-height: 300px;
+  }
+  
+  .event-item {
+    padding: 10px;
+  }
+  
+  .event-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .event-message {
+    font-size: 13px;
   }
 }
 
@@ -405,6 +996,74 @@ onMounted(async () => {
   
   .content-area {
     padding: 10px;
+  }
+  
+  .dashboard-layout {
+    gap: 15px;
+  }
+  
+  .driver-score-hero {
+    padding: 15px 5px;
+  }
+  
+  .score-badge {
+    padding: 25px 30px;
+    min-width: 220px;
+  }
+  
+  .score-value {
+    font-size: 80px;
+    letter-spacing: -1px;
+  }
+  
+  .score-label {
+    font-size: 14px;
+    letter-spacing: 3px;
+  }
+  
+  .score-subtitle {
+    font-size: 9px;
+  }
+  
+  .events-section {
+    padding: 12px;
+  }
+  
+  .events-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .events-header h3 {
+    font-size: 14px;
+  }
+  
+  .events-list {
+    max-height: 250px;
+  }
+  
+  .event-item {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .event-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .event-icon .icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .event-message {
+    font-size: 12px;
+  }
+  
+  .event-reason {
+    font-size: 11px;
   }
   
   .no-vehicle-message {

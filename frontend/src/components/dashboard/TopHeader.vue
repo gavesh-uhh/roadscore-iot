@@ -12,16 +12,37 @@ defineProps({
   showLogout: {
     type: Boolean,
     default: false
+  },
+  vehicles: {
+    type: Array,
+    default: () => []
+  },
+  selectedVehicleId: String,
+  showVehicleSelector: {
+    type: Boolean,
+    default: false
   }
 })
 
-defineEmits(['update:searchQuery', 'logout'])
+defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
 </script>
 
 <template>
   <header class="top-header">
     <div class="header-left">
       <h1>{{ title }}</h1>
+      <div v-if="showVehicleSelector" class="vehicle-selector-inline">
+        <select 
+          :value="selectedVehicleId" 
+          @change="$emit('update:selectedVehicleId', $event.target.value)"
+          class="vehicle-select-inline"
+        >
+          <option value="">-- Select Vehicle --</option>
+          <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
+            {{ vehicle.plateNumber }} - {{ vehicle.model }}
+          </option>
+        </select>
+      </div>
     </div>
     <div class="header-right">
       <div class="search-box" v-if="showSearch">
@@ -58,6 +79,49 @@ defineEmits(['update:searchQuery', 'logout'])
   font-size: 20px;
   font-weight: 600;
   color: #fff;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.vehicle-selector-inline {
+  display: flex;
+  align-items: center;
+}
+
+.vehicle-select-inline {
+  padding: 8px 15px;
+  background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 100%);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 250px;
+  transition: all 0.2s ease;
+}
+
+.vehicle-select-inline option {
+  background: #1a1f2e;
+  color: #fff;
+  padding: 8px;
+}
+
+.vehicle-select-inline option:hover {
+  background: #252b3b;
+}
+
+.vehicle-select-inline:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.vehicle-select-inline:hover {
+  border-color: rgba(167, 139, 250, 0.5);
 }
 
 .header-right {
@@ -130,6 +194,18 @@ defineEmits(['update:searchQuery', 'logout'])
   
   .top-header h1 {
     font-size: 16px;
+  }
+  
+  .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .vehicle-select-inline {
+    min-width: 200px;
+    font-size: 13px;
+    padding: 6px 12px;
   }
   
   .header-right {
