@@ -21,10 +21,10 @@ It generates an objective driving safety score (0–1000) based on configurable 
 
 ```
 roadscore-iot/
-├── device/          ESP32 firmware (Arduino)
-├── backend/         Express API + background score worker
-├── frontend/        Vue 3 dashboard
-├── simulator/       Node.js device emulator
+├── device/          ESP32 firmware
+├── backend/         Express API + background score calculation server
+├── frontend/        Vue 3 front-end dashboard
+├── simulator/       Emulator for emulating 'RoadScore' device for testing thresholds
 └── firebase-db/     DB seed data & security rules
 ```
 
@@ -38,8 +38,8 @@ roadscore-iot/
 
 | Layer | Stack |
 |-------|-------|
-| Device | ESP32, MPU6050, NEO-6M GPS, OLED SSD1306 |
-| Backend | Node.js, Express, Firebase Admin SDK |
+| Device | ESP32-CAM, MPU6050, NEO-6M GPS, SW520D, MIC, OLED SSD1306 |
+| Backend | Node.js, ExpressJS, Firebase Admin SDK |
 | Frontend | Vue 3, Vite, ECharts, Leaflet |
 | Database | Firebase Realtime Database |
 | Simulator | Node.js, Firebase Admin SDK |
