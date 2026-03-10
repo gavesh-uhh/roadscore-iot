@@ -106,38 +106,93 @@ Score starts at 1000 and decreases on detected events. A running average is main
 | `/alerts` | System alerts |
 | `/health` | Health check |
 
-## Firebase Structure Example
-```json
-{
-  "liveData": {
-    "ESP32_001": {
-      "vehicleId": "CAB-001",
-      "timestamp": 1714000000000,
-      "speed": 42.3,
-      "vibration": false,
-      "soundDetected": false,
-      "acceleration": {
-        "x": 0.012,
-        "y": -0.003,
-        "z": 1.001
-      },
-      "gyroscope": {
-        "pitch": 0.21,
-        "roll": -0.10,
-        "yaw": 0.05
-      },
-      "gps": {
-        "lat": 6.92710,
-        "lng": 79.86120
-      }
-    }
-  }
-}
+## Firebase Structure
+
+```
+users/
+  {uid}/
+    name: string
+    email: string
+    role: string
+    status: string
+    createdAt: number
+
+vehicles/
+  {vehicleId}/
+    plateNumber: string
+    model: string
+    deviceId: string
+    ownerUid: string
+    createdAt: number
+
+liveData/
+  {deviceId}/
+    vehicleId: string
+    speed: number
+    acceleration: { x: number, y: number, z: number }
+    gyroscope: { pitch: number, roll: number, yaw: number }
+    gps: { lat: number, lng: number }
+    vibration: boolean
+    soundDetected: boolean
+    timestamp: number
+
+driverScores/
+  {vehicleId}/
+    vehicleId: string
+    deviceId: string
+    uid: string
+    currentScore: number
+    previousScore: number
+    averageScore: number
+    totalTrips: number
+    lastCalculated: number
+
+drivingBehavior/
+  {vehicleId}/
+    vehicleId: string
+    deviceId: string
+    uid: string
+    metrics: object
+    recentEvents: array
+    lastUpdated: number
+
+scoreHistory/
+  {vehicleId_timestamp}/
+    vehicleId: string
+    uid: string
+    score: number
+    date: string
+    timestamp: number
+    tripData: { distance: number, duration: number, avgSpeed: number }
+
+liveDataHistory/
+  {deviceId_timestamp}/
+    vehicleId: string
+    deviceId: string
+    speed: number
+    acceleration: { x: number, y: number, z: number }
+    gyroscope: { pitch: number, roll: number, yaw: number }
+    gps: { lat: number, lng: number }
+    vibration: boolean
+    soundDetected: boolean
+    calculatedScore: number
+    timestamp: number
+
+alerts/
+  {alertId}/
+    uid: string
+    vehicleId: string
+    deviceId: string
+    type: string
+    severity: string
+    message: string
+    timestamp: number
+    acknowledged: boolean
 ```
 
 ## Authors
 
-Gavesh Saparamadu
-Yashan Perara
-Timesh Dillon
-Siluna De Silva
+- Gavesh Saparamadu
+- Yashan Perara
+- Timesh Dillon
+- Siluna De Silva
