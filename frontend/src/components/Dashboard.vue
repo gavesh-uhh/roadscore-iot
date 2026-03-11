@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { RotateCw } from 'lucide-vue-next'
 
+import { api } from '../api'
 import { useLiveData } from '../composables/useLiveData'
 import { useCrud } from '../composables/useCrud'
 
@@ -73,6 +75,8 @@ const scoreAnimating = ref(false)
 const previousScore = ref(85)
 const drivingEvents = ref([])
 const lastViolation = ref(null)
+const showResetConfirm = ref(false)
+const resetLoading = ref(false)
 
 const chartsRef = ref(null)
 
@@ -334,6 +338,49 @@ function formatEventTime(timestamp) {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
+function openResetConfirm() {
+  showResetConfirm.value = true
+}
+
+function closeResetConfirm() {
+  showResetConfirm.value = false
+}
+
+async function confirmResetScore() {
+  resetLoading.value = true
+  try {
+    const vehicleId = isAdmin.value ? selectedVehicleId.value : selectedVehicle.value?.id
+    
+    if (!vehicleId) {
+      alert('No vehicle selected')
+      return
+    }
+    
+    await api.resetDriverScore(vehicleId)
+    
+    // Clear events list
+    drivingEvents.value = []
+    lastViolation.value = null
+    
+    // Show success message
+    drivingEvents.value.unshift({
+      id: Date.now(),
+      timestamp: new Date(),
+      type: 'info',
+      message: 'Driver score reset successfully',
+      reason: 'Score has been reset to 1000 points',
+      icon: 'check-circle'
+    })
+    
+    closeResetConfirm()
+  } catch (error) {
+    console.error('Failed to reset driver score:', error)
+    alert('Failed to reset driver score: ' + error.message)
+  } finally {
+    resetLoading.value = false
+  }
+}
+
 onMounted(async () => {
   await fetchAll()
 
@@ -403,6 +450,9 @@ onMounted(async () => {
                      driverScore >= 80 ? 'score-excellent' : driverScore >= 60 ? 'score-good' : 'score-poor',
                      { 'score-animating': scoreAnimating }
                    ]">
+                <button class="reset-score-btn" @click="openResetConfirm" title="Reset Driver Score">
+                  <RotateCw :size="18" />
+                </button>
                 <div class="score-value" :class="{ 'value-animating': scoreAnimating }">{{ driverScore }}</div>
                 <div class="score-label">Driver Score</div>
                 <div class="score-subtitle">Real-time Performance Rating</div>
@@ -530,6 +580,17 @@ onMounted(async () => {
       @confirm="confirmDelete"
       @cancel="closeDeleteConfirm"
     />
+
+    <ConfirmModal
+      :show="showResetConfirm"
+      title="Reset Driver Score"
+      message="Are you sure you want to reset the driver score to 1000? This will clear all score history for this vehicle."
+      confirmText="Reset Score"
+      :loading="resetLoading"
+      variant="warning"
+      @confirm="confirmResetScore"
+      @cancel="closeResetConfirm"
+    />
   </div>
 </template>
 
@@ -608,6 +669,34 @@ onMounted(async () => {
   border-radius: 25px;
   z-index: -1;
   transition: all 0.4s ease;
+}
+
+.reset-score-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  background: rgba(245, 166, 35, 0.1);
+  color: #f5a623;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.reset-score-btn:hover {
+  background: rgba(245, 166, 35, 0.2);
+  border-color: #f5a623;
+  transform: rotate(90deg);
+}
+
+.reset-score-btn:active {
+  transform: rotate(90deg) scale(0.95);
 }
 
 .score-badge.score-excellent::before {

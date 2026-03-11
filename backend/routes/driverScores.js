@@ -59,4 +59,29 @@ router.get('/user/:uid', async (req, res) => {
   }
 });
 
+router.put('/reset/:vehicleId', async (req, res) => {
+  try {
+    const vehicleId = req.params.vehicleId;
+    const { setDoc } = require('../utils/db');
+    
+    const resetData = {
+      currentScore: 1000,
+      previousScore: 1000,
+      averageScore: 1000,
+      totalTrips: 0,
+      lastCalculated: Date.now()
+    };
+    
+    await setDoc('driverScores', vehicleId, resetData);
+    
+    res.json({
+      success: true,
+      message: 'Driver score reset successfully',
+      data: { id: vehicleId, ...resetData }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
