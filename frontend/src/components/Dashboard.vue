@@ -78,12 +78,6 @@ const sidebarCollapsed = ref(false)
 const scoreAnimating = ref(false)
 const previousScore = ref(null)
 const drivingEvents = ref([])
-<<<<<<< HEAD
-=======
-const lastViolation = ref(null)
-const showResetConfirm = ref(false)
-const resetLoading = ref(false)
->>>>>>> 91357194699f2ca275b5b70c7b7154095327c158
 
 const chartsRef = ref(null)
 
