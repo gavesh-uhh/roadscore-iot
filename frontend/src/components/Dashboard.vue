@@ -76,7 +76,6 @@ const sidebarCollapsed = ref(false)
 const scoreAnimating = ref(false)
 const previousScore = ref(null)
 const drivingEvents = ref([])
-const lastViolation = ref(null)
 
 const chartsRef = ref(null)
 
@@ -183,20 +182,6 @@ watch(driverScore, (newScore, oldScore) => {
     previousScore.value = oldScore
     scoreAnimating.value = true
 
-    // Add event based on score change
-    const scoreDiff = newScore - oldScore
-    const scoreEvent = getScoreChangeEvent(scoreDiff, newScore, lastViolation.value)
-
-    drivingEvents.value.unshift(scoreEvent)
-    if (drivingEvents.value.length > 10) {
-      drivingEvents.value = drivingEvents.value.slice(0, 10)
-    }
-
-    // Clear last violation after using it
-    if (scoreDiff < 0) {
-      lastViolation.value = null
-    }
-
     setTimeout(() => {
       scoreAnimating.value = false
     }, 600)
@@ -222,9 +207,16 @@ async function fetchDrivingEvents(vehicleId) {
       alertsByTimestamp[alert.timestamp].push(alert)
     }
 
-    // Join recentEvents with alerts on timestamp
+    // Deduplicate by type+timestamp
+    const seen = new Set()
     drivingEvents.value = recentEvents
       .sort((a, b) => b.timestamp - a.timestamp)
+      .filter(event => {
+        const key = event.type + '_' + event.timestamp
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
       .slice(0, 10)
       .map((event, i) => {
         const matchedAlert = (alertsByTimestamp[event.timestamp] || [])
@@ -256,75 +248,6 @@ function mapSeverityToType(severity) {
 
 function clearDrivingEvents() {
   drivingEvents.value = []
-}
-
-function getScoreChangeEvent(change, currentScore, violation) {
-  const event = {
-    id: Date.now(),
-    timestamp: new Date(),
-    type: change > 0 ? 'improvement' : 'penalty',
-    change: change,
-    icon: change > 0 ? 'trend-up' : 'trend-down'
-  }
-
-  if (change > 0) {
-    if (change >= 5) {
-      event.message = `Excellent driving! +${change} points`
-      event.reason = 'Consistent safe driving behavior rewarded'
-    } else {
-      event.message = `Good driving behavior +${change} points`
-      event.reason = 'Maintaining safe driving practices'
-    }
-  } else {
-    if (change <= -5) {
-      if (violation) {
-        event.message = `Major violation! ${change} points`
-        event.reason = getViolationReason(violation)
-      } else {
-        event.message = `Major violation! ${change} points`
-        event.reason = 'Severe driving behavior detected'
-      }
-    } else {
-      if (violation) {
-        event.message = `Poor driving behavior ${change} points`
-        event.reason = getViolationReason(violation)
-      } else {
-        event.message = `Poor driving behavior ${change} points`
-        event.reason = 'Unsafe driving detected'
-      }
-    }
-  }
-
-  return event
-}
-
-function getViolationReason(violation) {
-  if (!violation) return 'Multiple safety violations detected'
-
-  switch (violation.type) {
-    case 'critical_speed':
-      return `Critical speed: ${violation.value} km/h exceeds safe limits`
-    case 'overspeed':
-      return `Speed limit exceeded: ${violation.value} km/h (limit: 60 km/h)`
-    case 'harsh_acceleration':
-      return `Extreme acceleration: ${violation.value}g detected`
-    case 'sharp_cornering':
-      return `Sharp cornering: ${violation.value}° from Gyro`
-    case 'pothole':
-      return `Pothole/bump impact: ${violation.value}g on Z-axis`
-    default:
-      return 'Safety violation detected'
-  }
-}
-
-function getScoreChangeMessage(change, currentScore) {
-  if (change > 0) {
-    if (change >= 5) return `Excellent driving! +${change} points`
-    return `Good driving behavior +${change} points`
-  } else {
-    if (change <= -5) return `Major violation! ${change} points`
-    return `Poor driving behavior ${change} points`
-  }
 }
 
 function formatEventTime(timestamp) {

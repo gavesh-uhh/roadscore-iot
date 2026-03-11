@@ -230,10 +230,6 @@ export function useLiveData(deviceId = 'esp32_001') {
     updateInterval = setInterval(async () => {
       await updateLiveData(vehicleId)
       chartsRef?.value?.updateCharts()
-      
-      if (vehicleId && userId) {
-        await checkAndCreateAlerts(vehicleId, userId)
-      }
     }, interval)
   }
 

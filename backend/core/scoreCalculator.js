@@ -18,43 +18,43 @@ const EVENTS = {
     type: "Crash Detected",
     alertType: "crash_detected",
     severity: "high",
-    penalty: 100,
+    penalty: 60,
   },
   HARD_BRAKE: {
     type: "Hard Break Found",
     alertType: "hard_brake",
     severity: "medium",
-    penalty: 50,
+    penalty: 20,
   },
   SHARP_CORNER: {
     type: "Sharp Cornering Found",
     alertType: "overspeed",
     severity: "medium",
-    penalty: 30,
+    penalty: 10,
   },
   HARSH_ACCELERATION: {
     type: "Harsh Acceleration",
     alertType: "hard_brake",
     severity: "low",
-    penalty: 20,
+    penalty: 8,
   },
   POTHOLE: {
     type: "Pothole/Bump Found",
     alertType: "hard_brake",
     severity: "low",
-    penalty: 10,
+    penalty: 3,
   },
   OVERSPEED: {
     type: "Overspeed",
     alertType: "overspeed",
     severity: "medium",
-    penalty: 20,
+    penalty: 8,
   },
   UNDERSPEED: {
     type: "Too Slow",
     alertType: "overspeed",
     severity: "low",
-    penalty: 20,
+    penalty: 5,
   },
 };
 
@@ -86,8 +86,8 @@ function checkForCrash(data, events) {
 
   let indicators = 0;
   if (soundBlast) indicators++;
-  if (excessAcceleration > 2.0) indicators++;
-  if (suddenSpeedDrop > 30) indicators++;
+  if (excessAcceleration > 3.5) indicators++;
+  if (suddenSpeedDrop > 40) indicators++;
 
   if (indicators >= 3) {
     console.log(
@@ -132,11 +132,12 @@ function checkForHardBrake(data, events) {
   const vibrationDetected = current.vibration === true;
   const timeSeconds = timeDelta / 1000;
 
-  const significantSpeedDrop = speedDrop > 15 && timeSeconds < 2;
-  const strongDeceleration = deceleration < -0.3;
+
+  const significantSpeedDrop = speedDrop > 20 && timeSeconds < 1.5;
+  const strongDeceleration = deceleration < -0.5;
 
   const triggered =
-    significantSpeedDrop && strongDeceleration && previous.speed > 10;
+    significantSpeedDrop && strongDeceleration && previous.speed > 20;
 
   if (triggered) {
     console.log(
@@ -175,7 +176,7 @@ function checkForSharpCornering(data, events) {
 
   const corneringThreshold = Math.max(roll, yaw);
 
-  if (corneringThreshold > 5.0) {
+  if (corneringThreshold > 12.0) {
     console.log(
       "[Sharp Corner TRIGGERED] " +
         JSON.stringify({
@@ -198,9 +199,9 @@ function checkForHarshAcceleration(data, events) {
   const previousSpeed = data.previous.speed;
   const currentSpeed = data.current.speed;
 
-  const suddenSpeedIncrease = currentSpeed - previousSpeed;
 
-  const triggered = suddenSpeedIncrease > 20 && previousSpeed > 5;
+  const suddenSpeedIncrease = currentSpeed - previousSpeed;
+  const triggered = suddenSpeedIncrease > 15 && previousSpeed > 10;
 
   if (triggered) {
     console.log(
@@ -229,8 +230,9 @@ function checkForPothole(data, events) {
   const jumpForce = data.current.acceleration.z;
   const excessZ = Math.abs(jumpForce - GRAVITY);
 
+
   // trigger on strong vertical impact, or moderate impact with vibration confirmation
-  const triggered = excessZ > 0.5 || (vibration === true && excessZ > 0.25);
+  const triggered = excessZ > 1.0 || (vibration === true && excessZ > 0.5);
 
   if (triggered) {
     console.log(
@@ -256,7 +258,7 @@ function checkForOverspeed(data, events) {
   const { current, previous } = data;
 
   if (!current) return 0;
-  const SPEED_LIMIT = 60;
+  const SPEED_LIMIT = 80;
   const currentSpeed = current.speed;
   const previousSpeed = previous ? previous.speed : 0;
   const isOverspeeding = currentSpeed > SPEED_LIMIT;
