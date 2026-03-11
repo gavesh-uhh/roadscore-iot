@@ -243,6 +243,7 @@ function mapSeverityToType(severity) {
     case 'high': return 'danger'
     case 'medium': return 'warning'
     case 'low': return 'info'
+    case 'positive': return 'success'
     default: return 'warning'
   }
 }
@@ -997,29 +998,32 @@ onMounted(async () => {
 .no-vehicle-message p {
   color: #7a90b3;
   font-size: 16px;
-}
-
-@media (max-width: 768px) {
-  .app-container {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .main-content {
-    margin-left: 64px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .no-sidebar .main-content {
-    margin-left: 0;
-  }
-
-  .content-area {
-    padding: 15px;
-    overflow: visible;
-  }
-
+    drivingEvents.value = recentEvents
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .filter(event => {
+        const key = event.type + '_' + event.timestamp
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .slice(0, 10)
+      .map((event, i) => {
+        const matchedAlert = (alertsByTimestamp[event.timestamp] || [])
+          .find(a => a.vehicleId === vehicleId)
+        // Show bonus for positive events
+        const isPositive = event.type === 'Smooth Brake' || event.type === 'Smooth Acceleration' || matchedAlert?.severity === 'positive';
+        return {
+          id: event.timestamp + i,
+          timestamp: event.timestamp,
+          type: mapSeverityToType(matchedAlert?.severity || (isPositive ? 'positive' : '')), // 'success' for positive
+          message: matchedAlert?.message || event.type,
+          reason: matchedAlert ? `Severity: ${matchedAlert.severity}` : (isPositive ? 'Bonus: +10' : null),
+          location: event.location,
+          rawData: event.rawData,
+          acknowledged: matchedAlert?.acknowledged || false,
+          bonus: isPositive ? 10 : 0
+        }
+      })
   .dashboard-section {
     overflow: hidden;
   }

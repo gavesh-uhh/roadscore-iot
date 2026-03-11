@@ -56,7 +56,91 @@ const EVENTS = {
     severity: "low",
     penalty: 5,
   },
+  SMOOTH_BRAKE: {
+    type: "Smooth Brake",
+    alertType: "smooth_brake",
+    severity: "positive",
+    bonus: 10,
+  },
+  SMOOTH_ACCELERATION: {
+    type: "Smooth Acceleration",
+    alertType: "smooth_acceleration",
+    severity: "positive",
+    bonus: 10,
+  }
 };
+
+function checkForSmoothAcceleration(data, events) {
+  const { current, previous, timeDelta } = data;
+  if (!previous || !timeDelta) return 0;
+  const speedIncrease = current.speed - previous.speed;
+  const acceleration = current.acceleration.x;
+  const timeSeconds = timeDelta / 1000;
+  const smoothSpeedIncrease = speedIncrease > 5 && speedIncrease < 10;
+  const smoothAcceleration = acceleration > 0.15 && acceleration < 0.35;
+  const slowDuration = timeSeconds > 2.0;
+  const triggered = smoothSpeedIncrease && smoothAcceleration && slowDuration && previous.speed > 10;
+  if (triggered) {
+    console.log(
+      "[Smooth Acceleration TRIGGERED] " +
+        JSON.stringify({
+          speedIncrease: speedIncrease.toFixed(2) + " km/h",
+          acceleration: acceleration.toFixed(3) + "g",
+          timeDelta: timeSeconds.toFixed(2) + "s",
+          speed: {
+            previous: previous.speed.toFixed(2),
+            current: current.speed.toFixed(2),
+          },
+        }),
+    );
+    events.push({
+      type: EVENTS.SMOOTH_ACCELERATION.type,
+      alertType: EVENTS.SMOOTH_ACCELERATION.alertType,
+      value: acceleration,
+      message: "Smooth acceleration detected",
+      severity: EVENTS.SMOOTH_ACCELERATION.severity,
+      bonus: EVENTS.SMOOTH_ACCELERATION.bonus,
+    });
+    return -EVENTS.SMOOTH_ACCELERATION.bonus;
+  }
+  return 0;
+}
+
+function checkForSmoothBrake(data, events) {
+  const { current, previous, timeDelta } = data;
+  if (!previous || !timeDelta) return 0;
+  const speedDrop = previous.speed - current.speed;
+  const deceleration = current.acceleration.x;
+  const timeSeconds = timeDelta / 1000;
+  const smoothSpeedDrop = speedDrop > 5 && speedDrop < 10;
+  const smoothDeceleration = deceleration < -0.15 && deceleration > -0.35;
+  const slowDuration = timeSeconds > 2.0;
+  const triggered = smoothSpeedDrop && smoothDeceleration && slowDuration && previous.speed > 10;
+  if (triggered) {
+    console.log(
+      "[Smooth Brake TRIGGERED] " +
+        JSON.stringify({
+          speedDrop: speedDrop.toFixed(2) + " km/h",
+          deceleration: deceleration.toFixed(3) + "g",
+          timeDelta: timeSeconds.toFixed(2) + "s",
+          speed: {
+            previous: previous.speed.toFixed(2),
+            current: current.speed.toFixed(2),
+          },
+        }),
+    );
+    events.push({
+      type: EVENTS.SMOOTH_BRAKE.type,
+      alertType: EVENTS.SMOOTH_BRAKE.alertType,
+      value: deceleration,
+      message: "Smooth braking detected",
+      severity: EVENTS.SMOOTH_BRAKE.severity,
+      bonus: EVENTS.SMOOTH_BRAKE.bonus,
+    });
+    return -EVENTS.SMOOTH_BRAKE.bonus; 
+  }
+  return 0;
+}
 
 function pushEvent(events, eventDef, value, message) {
   events.push({
@@ -78,7 +162,7 @@ function checkForCrash(data, events) {
       Math.pow(accelerationData.z, 2),
   );
 
-  const excessAcceleration = Math.abs(allAcceleration - GRAVITY); // subtract gravity baseline
+  const excessAcceleration = Math.abs(allAcceleration - GRAVITY);
 
   const previousSpeed = data.previous.speed;
   const currentSpeed = data.current.speed;
@@ -86,10 +170,10 @@ function checkForCrash(data, events) {
 
   let indicators = 0;
   if (soundBlast) indicators++;
-  if (excessAcceleration > 3.5) indicators++;
-  if (suddenSpeedDrop > 40) indicators++;
+  if (excessAcceleration > 2.5) indicators++; // was 2.0
+  if (suddenSpeedDrop > 30) indicators++; // was 25
 
-  if (indicators >= 3) {
+  if (indicators >= 2) { // was 3
     console.log(
       "[Crash TRIGGERED] " +
         JSON.stringify({
@@ -230,7 +314,6 @@ function checkForPothole(data, events) {
   const jumpForce = data.current.acceleration.z;
   const excessZ = Math.abs(jumpForce - GRAVITY);
 
-
   // trigger on strong vertical impact, or moderate impact with vibration confirmation
   const triggered = excessZ > 1.0 || (vibration === true && excessZ > 0.5);
 
@@ -301,6 +384,8 @@ function calculateScore(data) {
   score -= checkForHarshAcceleration(data, events);
   score -= checkForPothole(data, events);
   score -= checkForOverspeed(data, events);
+  score -= checkForSmoothBrake(data, events); // positive event
+  score -= checkForSmoothAcceleration(data, events); // positive event
 
   score = Math.max(0, score);
   if (events.length === 0) return null;

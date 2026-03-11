@@ -24,6 +24,8 @@ const EVENTS = {
   sharp_corner: { label: 'Sharp Cornering',  duration: 3 },
   pothole:      { label: 'Pothole/Bump',     duration: 1 },
   crash:        { label: 'Crash',             duration: 2 },
+  smooth_brake: { label: 'Smooth Brake',      duration: 3 },
+  smooth_acceleration: { label: 'Smooth Acceleration', duration: 3 },
 };
 
 const triggerEvent = (type) => {
@@ -44,15 +46,21 @@ if (process.stdin.isTTY) {
     if (key === '2') triggerEvent('sharp_corner');
     if (key === '3') triggerEvent('pothole');
     if (key === '4') triggerEvent('crash');
+    if (key === '5') triggerEvent('smooth_brake');
+    if (key === '6') triggerEvent('smooth_acceleration');
     if (key === 'q' || key === '\u0003') process.exit();
   });
-  console.log('1=Hard Brake,  2=Sharp Corner,  3=Pothole,  4=Crash,  q=Quit\n');
+  console.log('1=Hard Brake,  2=Sharp Corner,  3=Pothole,  4=Crash,  5=Smooth Brake,  6=Smooth Acceleration,  q=Quit\n');
 }
 
 const getSensorData = () => {
   switch (currentEvent) {
     case 'hard_brake':
       return { accX: -rand(0.4, 0.8), accY: -rand(0.03, 0.07), accZ: rand(0.97, 1.04), pitch: rand(2, 5), roll: rand(-3, 3), yaw: rand(0.5, 1.5), speed: Math.max(speed - rand(10, 20), 0), vibration: false, soundDetected: false };
+    case 'smooth_brake':
+      return { accX: -rand(0.15, 0.35), accY: -rand(0.01, 0.03), accZ: rand(0.97, 1.04), pitch: rand(0.5, 2), roll: rand(-1, 1), yaw: rand(0.1, 0.5), speed: Math.max(speed - rand(5, 10), 0), vibration: false, soundDetected: false };
+    case 'smooth_acceleration':
+      return { accX: rand(0.15, 0.35), accY: rand(0.01, 0.03), accZ: rand(0.97, 1.04), pitch: rand(0.5, 2), roll: rand(-1, 1), yaw: rand(0.1, 0.5), speed: Math.min(speed + rand(5, 10), 100), vibration: false, soundDetected: false };
     case 'sharp_corner':
       return { accX: rand(0.08, 0.15), accY: -rand(0.05, 0.10), accZ: rand(0.96, 1.01), pitch: rand(1, 2.5), roll: rand(18.5, 25), yaw: rand(2, 4), speed: drift(speed, 2, 30, 70), vibration: false, soundDetected: false };
     case 'pothole':
