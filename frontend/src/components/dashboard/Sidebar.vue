@@ -39,7 +39,6 @@ const navItems = computed(() => {
   <aside class="sidebar" :class="{ collapsed }">
     <div class="sidebar-header">
       <div class="logo" v-if="!collapsed">
-        <Activity :size="20" />
         <img src="/rs.png" alt="RoadScore" class="logo-img" />
       </div>
       <button class="toggle-btn" @click="$emit('toggle-sidebar')">
@@ -90,7 +89,7 @@ const navItems = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  padding: 15px;
   border-bottom: 1px solid #1a2d50;
   min-height: 64px;
 }
@@ -111,7 +110,7 @@ const navItems = computed(() => {
 }
 
 .logo-img {
-  height: 28px;
+  height: 40px;
   width: auto;
   object-fit: contain;
   flex-shrink: 0;
