@@ -203,23 +203,6 @@ export const api = {
     return res.json();
   },
 
-  async resetDriverScore(vehicleId) {
-    const res = await fetch(`${API_BASE}/driver-scores/reset/${vehicleId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeaders()
-      }
-    });
-    
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || 'Failed to reset driver score');
-    }
-    
-    return res.json();
-  },
-
   async getCrashEvents(vehicleId) {
     const res = await fetch(`${API_BASE}/driving-behavior/vehicle/${vehicleId}/crashes`);
     return res.json();
