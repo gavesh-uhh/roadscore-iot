@@ -217,8 +217,8 @@ function checkForHardBrake(data, events) {
   const timeSeconds = timeDelta / 1000;
 
 
-  const significantSpeedDrop = speedDrop > 20 && timeSeconds < 1.5;
-  const strongDeceleration = deceleration < -0.5;
+  const significantSpeedDrop = speedDrop > 10 && timeSeconds < 1.5;
+  const strongDeceleration = deceleration < -0.3;
 
   const triggered =
     significantSpeedDrop && strongDeceleration && previous.speed > 20;
@@ -283,9 +283,9 @@ function checkForHarshAcceleration(data, events) {
   const previousSpeed = data.previous.speed;
   const currentSpeed = data.current.speed;
 
-
   const suddenSpeedIncrease = currentSpeed - previousSpeed;
-  const triggered = suddenSpeedIncrease > 15 && previousSpeed > 10;
+  // Only trigger if speed is actually increasing
+  const triggered = suddenSpeedIncrease > 15 && previousSpeed > 10 && currentSpeed > previousSpeed;
 
   if (triggered) {
     console.log(
@@ -313,8 +313,6 @@ function checkForPothole(data, events) {
   const vibration = data.current.vibration;
   const jumpForce = data.current.acceleration.z;
   const excessZ = Math.abs(jumpForce - GRAVITY);
-
-  // trigger on strong vertical impact, or moderate impact with vibration confirmation
   const triggered = excessZ > 1.0 || (vibration === true && excessZ > 0.5);
 
   if (triggered) {
@@ -378,14 +376,17 @@ function calculateScore(data) {
   const events = [];
   let score = data.currentScore ? data.currentScore.currentScore : 1000;
 
+  // Penalty Events 
   score -= checkForCrash(data, events);
   score -= checkForHardBrake(data, events);
   score -= checkForSharpCornering(data, events);
   score -= checkForHarshAcceleration(data, events);
   score -= checkForPothole(data, events);
   score -= checkForOverspeed(data, events);
-  score -= checkForSmoothBrake(data, events); // positive event
-  score -= checkForSmoothAcceleration(data, events); // positive event
+
+  // Positive Events
+  score += Math.abs(checkForSmoothBrake(data, events));
+  score += Math.abs(checkForSmoothAcceleration(data, events));
 
   score = Math.max(0, score);
   if (events.length === 0) return null;

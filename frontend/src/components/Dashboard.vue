@@ -208,12 +208,12 @@ async function fetchDrivingEvents(vehicleId) {
       alertsByTimestamp[alert.timestamp].push(alert)
     }
 
-    // Deduplicate by type+timestamp
+    // Deduplicate by composite key: type+timestamp+message+value
     const seen = new Set()
     drivingEvents.value = recentEvents
       .sort((a, b) => b.timestamp - a.timestamp)
       .filter(event => {
-        const key = event.type + '_' + event.timestamp
+        const key = event.type + '_' + event.timestamp + '_' + (event.message || '') + '_' + (event.value || '')
         if (seen.has(key)) return false
         seen.add(key)
         return true
@@ -270,7 +270,7 @@ onMounted(async () => {
       const vehicleId = isAdmin.value ? selectedVehicleId.value : selectedVehicle.value?.id
       startUpdates(chartsRef, vehicleId, props.user?.uid)
       fetchDrivingEvents(vehicleId)
-      eventsInterval = setInterval(() => fetchDrivingEvents(vehicleId), 5000)
+      eventsInterval = setInterval(() => fetchDrivingEvents(vehicleId), 1000)
     }
   }, 200)
 })
