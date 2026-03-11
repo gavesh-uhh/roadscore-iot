@@ -170,8 +170,8 @@ function checkForCrash(data, events) {
 
   let indicators = 0;
   if (soundBlast) indicators++;
-  if (excessAcceleration > 2.5) indicators++; // was 2.0
-  if (suddenSpeedDrop > 30) indicators++; // was 25
+  if (excessAcceleration > 2.5) indicators++; 
+  if (suddenSpeedDrop > 30) indicators++;
 
   if (indicators >= 2) { // was 3
     console.log(
@@ -260,7 +260,7 @@ function checkForSharpCornering(data, events) {
 
   const corneringThreshold = Math.max(roll, yaw);
 
-  if (corneringThreshold > 12.0) {
+  if (corneringThreshold > 15.0) {
     console.log(
       "[Sharp Corner TRIGGERED] " +
         JSON.stringify({
@@ -312,23 +312,29 @@ function checkForHarshAcceleration(data, events) {
 function checkForPothole(data, events) {
   const vibration = data.current.vibration;
   const jumpForce = data.current.acceleration.z;
-  const excessZ = Math.abs(jumpForce - GRAVITY);
-  const triggered = excessZ > 1.0 || (vibration === true && excessZ > 0.5);
-
+  const baselineX = data.current.acceleration.x;
+  const baselineY = data.current.acceleration.y;
+  const baselineZ = jumpForce;
+  const previousZ = data.previous ? data.previous.acceleration.z : jumpForce;
+  const deltaZ = Math.abs(jumpForce - previousZ);
+  const triggered = (vibration === true ? jumpForce > 1.1 : jumpForce > 1.35) || deltaZ > 0.25;
+  console.log(
+    `[Pothole DEBUG] X: ${baselineX.toFixed(3)}, Y: ${baselineY.toFixed(3)}, Z: ${baselineZ.toFixed(3)}, deltaZ: ${deltaZ.toFixed(3)}, vibration: ${vibration}`
+  );
   if (triggered) {
     console.log(
       "[Pothole TRIGGERED] " +
         JSON.stringify({
           rawZ: jumpForce.toFixed(3) + "g",
-          excessZ: excessZ.toFixed(3) + "g",
+          deltaZ: deltaZ.toFixed(3) + "g",
           vibration,
         }),
     );
     return pushEvent(
       events,
       EVENTS.POTHOLE,
-      { vibration, jumpForce, excessZ },
-      "Pothole or Bump Found from sensors of vibration and acceleration of Z axis data",
+      { vibration, jumpForce, deltaZ },
+      "Pothole or Bump Found from sensors of vibration and sudden change in Z axis data",
     );
   }
 
