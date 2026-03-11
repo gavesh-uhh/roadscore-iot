@@ -4,6 +4,7 @@ import { api } from '../api'
 export function useCrud(userRef, isAdminRef) {
   const users = ref([])
   const vehicles = ref([])
+  const scores = ref([])
 
   const showModal = ref(false)
   const modalType = ref('')
@@ -47,8 +48,34 @@ export function useCrud(userRef, isAdminRef) {
     }
   }
 
+  async function fetchScores() {
+    try {
+      scores.value = await api.getAllDriverScores()
+    } catch (e) {
+      console.log('Could not fetch scores')
+    }
+  }
+
+  async function resetScore(vehicleId) {
+    try {
+      await api.resetDriverScore(vehicleId)
+      await fetchScores()
+    } catch (e) {
+      console.error('Reset score error:', e)
+    }
+  }
+
+  async function updateScore(vehicleId, newScore) {
+    try {
+      await api.updateDriverScore(vehicleId, newScore)
+      await fetchScores()
+    } catch (e) {
+      console.error('Update score error:', e)
+    }
+  }
+
   async function fetchAll() {
-    await Promise.all([fetchUsers(), fetchVehicles()])
+    await Promise.all([fetchUsers(), fetchVehicles(), fetchScores()])
   }
 
   function openModal(type, item = null) {
@@ -167,6 +194,7 @@ export function useCrud(userRef, isAdminRef) {
   return {
     users,
     vehicles,
+    scores,
     showModal,
     modalType,
     editingItem,
@@ -183,6 +211,7 @@ export function useCrud(userRef, isAdminRef) {
     filteredVehicles,
     fetchUsers,
     fetchVehicles,
+    fetchScores,
     fetchAll,
     openModal,
     closeModal,
@@ -190,6 +219,8 @@ export function useCrud(userRef, isAdminRef) {
     openDeleteConfirm,
     closeDeleteConfirm,
     confirmDelete,
-    selectFirstVehicle
+    selectFirstVehicle,
+    resetScore,
+    updateScore
   }
 }

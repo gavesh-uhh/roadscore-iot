@@ -35,7 +35,7 @@ export function useLiveData(deviceId = 'esp32_001') {
   const gyroRollHistory = ref([])
   const gyroYawHistory = ref([])
   const timeLabels = ref([])
-  const driverScore = ref(85)
+  const driverScore = ref(null)
 
   let updateInterval = null
 
@@ -43,81 +43,69 @@ export function useLiveData(deviceId = 'esp32_001') {
   const alertCooldown = 60000 
 
   const THRESHOLDS = {
-    SPEED_HIGH: 100, 
-    SPEED_CRITICAL: 120, 
-    ACCEL_HIGH: 3.0, 
-    GYRO_PITCH_HIGH: 15, 
-    GYRO_ROLL_HIGH: 15, 
+    SPEED_LIMIT: 60,
+    SPEED_CRITICAL: 100,
+    ACCEL_EXCESS: 2.0,
+    GYRO_CORNERING: 5.0,
+    POTHOLE_Z_EXCESS: 0.5,
+    POTHOLE_Z_VIBRATION: 0.25,
   }
 
   async function  checkAndCreateAlerts(vehicleId, userId) {
     if (!isDeviceConnected.value || !liveData.value.timestamp) return
     
     const alerts = []
-    
-    
-    if (liveData.value.speed > THRESHOLDS.SPEED_CRITICAL) {
+    const speed = liveData.value.speed
+    const accel = liveData.value.acceleration
+    const gyro = liveData.value.gyroscope
+    const vibration = liveData.value.vibration
+
+    if (speed > THRESHOLDS.SPEED_CRITICAL) {
       alerts.push({
-        type: 'critical_speed',
+        type: 'overspeed',
         severity: 'high',
-        message: `Critical speed detected: ${liveData.value.speed} km/h`,
-        value: liveData.value.speed
+        message: `Critical speed: ${speed} km/h exceeds ${THRESHOLDS.SPEED_CRITICAL} km/h`,
+        value: speed
       })
-    } else if (liveData.value.speed > THRESHOLDS.SPEED_HIGH) {
+    } else if (speed > THRESHOLDS.SPEED_LIMIT) {
       alerts.push({
-        type: 'high_speed',
+        type: 'overspeed',
         severity: 'medium',
-        message: `High speed detected: ${liveData.value.speed} km/h`,
-        value: liveData.value.speed
+        message: `Vehicle exceeded speed limit of ${THRESHOLDS.SPEED_LIMIT} km/h`,
+        value: speed
       })
     }
-    
-    const accelMagnitude = Math.sqrt(
-      Math.pow(liveData.value.acceleration.x, 2) +
-      Math.pow(liveData.value.acceleration.y, 2) +
-      Math.pow(liveData.value.acceleration.z, 2)
+
+    const totalAccel = Math.sqrt(
+      Math.pow(accel.x, 2) + Math.pow(accel.y, 2) + Math.pow(accel.z, 2)
     )
-    if (accelMagnitude > THRESHOLDS.ACCEL_HIGH) {
+    const excessAccel = Math.abs(totalAccel - 1.0)
+    if (excessAccel > THRESHOLDS.ACCEL_EXCESS) {
       alerts.push({
-        type: 'harsh_acceleration',
-        severity: 'medium',
-        message: `Harsh acceleration detected: ${accelMagnitude.toFixed(1)} m/s²`,
-        value: accelMagnitude
-      })
-    }
-    
-    if (Math.abs(liveData.value.gyroscope.pitch) > THRESHOLDS.GYRO_PITCH_HIGH) {
-      alerts.push({
-        type: 'excessive_pitch',
+        type: 'crash_detected',
         severity: 'high',
-        message: `Excessive pitch angle: ${liveData.value.gyroscope.pitch.toFixed(1)}°`,
-        value: liveData.value.gyroscope.pitch
+        message: `Extreme acceleration detected: ${excessAccel.toFixed(1)}g`,
+        value: excessAccel
       })
     }
-    if (Math.abs(liveData.value.gyroscope.roll) > THRESHOLDS.GYRO_ROLL_HIGH) {
+
+    const corneringValue = Math.max(Math.abs(gyro.roll), Math.abs(gyro.yaw))
+    if (corneringValue > THRESHOLDS.GYRO_CORNERING) {
       alerts.push({
-        type: 'excessive_roll',
-        severity: 'high',
-        message: `Excessive roll angle: ${liveData.value.gyroscope.roll.toFixed(1)}°`,
-        value: liveData.value.gyroscope.roll
-      })
-    }
-    
-    if (liveData.value.vibration) {
-      alerts.push({
-        type: 'vibration_detected',
+        type: 'overspeed',
         severity: 'medium',
-        message: 'Abnormal vibration detected',
-        value: true
+        message: `Sharp cornering detected: ${corneringValue.toFixed(1)}°`,
+        value: corneringValue
       })
     }
-    
-    if (liveData.value.soundDetected) {
+
+    const excessZ = Math.abs(accel.z - 1.0)
+    if (excessZ > THRESHOLDS.POTHOLE_Z_EXCESS || (vibration && excessZ > THRESHOLDS.POTHOLE_Z_VIBRATION)) {
       alerts.push({
-        type: 'sound_detected',
+        type: 'hard_brake',
         severity: 'low',
-        message: 'Unusual sound detected',
-        value: true
+        message: 'Pothole or bump detected',
+        value: excessZ
       })
     }
     
@@ -208,7 +196,7 @@ export function useLiveData(deviceId = 'esp32_001') {
     if (vehicleId) {
       try {
         const scoreData = await api.getDriverScore(vehicleId)
-        driverScore.value = Math.round(scoreData.currentScore / 10)
+        driverScore.value = Math.round(scoreData.currentScore)
       } catch (error) {
         console.error('Failed to fetch driver score:', error)
       }

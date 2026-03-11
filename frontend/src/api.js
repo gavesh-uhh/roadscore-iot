@@ -177,6 +177,27 @@ export const api = {
     return res.json();
   },
 
+  async getAllDriverScores() {
+    const res = await fetch(`${API_BASE}/driver-scores`);
+    return res.json();
+  },
+
+  async resetDriverScore(vehicleId) {
+    const res = await fetch(`${API_BASE}/driver-scores/vehicle/${vehicleId}/reset`, {
+      method: 'PUT'
+    });
+    return res.json();
+  },
+
+  async updateDriverScore(vehicleId, currentScore) {
+    const res = await fetch(`${API_BASE}/driver-scores/vehicle/${vehicleId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentScore })
+    });
+    return res.json();
+  },
+
   async getUserDriverScore(uid) {
     const res = await fetch(`${API_BASE}/driver-scores/user/${uid}`);
     return res.json();

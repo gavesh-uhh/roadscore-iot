@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 
 import { useLiveData } from '../composables/useLiveData'
 import { useCrud } from '../composables/useCrud'
+import { api } from '../api'
 
 import Sidebar from './dashboard/Sidebar.vue'
 import TopHeader from './dashboard/TopHeader.vue'
@@ -41,6 +42,7 @@ const {
 const {
   users,
   vehicles,
+  scores,
   showModal,
   modalType,
   editingItem,
@@ -61,7 +63,9 @@ const {
   saveItem,
   openDeleteConfirm,
   closeDeleteConfirm,
-  confirmDelete
+  confirmDelete,
+  resetScore,
+  updateScore
 } = useCrud(
   computed(() => props.user),
   isAdmin
@@ -70,7 +74,7 @@ const {
 const currentSection = ref('dashboard')
 const sidebarCollapsed = ref(false)
 const scoreAnimating = ref(false)
-const previousScore = ref(85)
+const previousScore = ref(null)
 const drivingEvents = ref([])
 const lastViolation = ref(null)
 
@@ -80,6 +84,7 @@ const navLabels = {
   dashboard: 'Dashboard',
   vehicles: 'Vehicles',
   users: 'Users',
+  scores: 'Scores',
   trips: 'Live Map'
 }
 
@@ -95,6 +100,57 @@ const vehicleColumns = computed(() => [
   { key: 'deviceId', label: 'Device ID' }
 ])
 
+const showScoreResetConfirm = ref(false)
+const scoreResetTarget = ref(null)
+const scoreResetLoading = ref(false)
+const editingScore = ref(null)
+const editScoreValue = ref(1000)
+
+const scoresWithVehicle = computed(() => {
+  return scores.value.map(s => {
+    const vehicle = vehicles.value.find(v => v.id === s.vehicleId)
+    return { ...s, plateNumber: vehicle?.plateNumber || '-', model: vehicle?.model || '-' }
+  })
+})
+
+const filteredScores = computed(() => {
+  if (!searchQuery.value) return scoresWithVehicle.value
+  const q = searchQuery.value.toLowerCase()
+  return scoresWithVehicle.value.filter(s =>
+    s.vehicleId?.toLowerCase().includes(q) ||
+    s.plateNumber?.toLowerCase().includes(q) ||
+    s.model?.toLowerCase().includes(q)
+  )
+})
+
+function openScoreReset(score) {
+  scoreResetTarget.value = score
+  showScoreResetConfirm.value = true
+}
+
+async function confirmScoreReset() {
+  if (!scoreResetTarget.value) return
+  scoreResetLoading.value = true
+  await resetScore(scoreResetTarget.value.vehicleId)
+  scoreResetLoading.value = false
+  showScoreResetConfirm.value = false
+  scoreResetTarget.value = null
+}
+
+function startEditScore(score) {
+  editingScore.value = score.vehicleId
+  editScoreValue.value = score.currentScore
+}
+
+function cancelEditScore() {
+  editingScore.value = null
+}
+
+async function saveEditScore(vehicleId) {
+  await updateScore(vehicleId, editScoreValue.value)
+  editingScore.value = null
+}
+
 function changeSection(section) {
   currentSection.value = section
   searchQuery.value = ''
@@ -107,17 +163,23 @@ const hasVehicleSelected = computed(() => {
   return driverVehicles.value.length > 0
 })
 
+let eventsInterval = null
+
 watch(selectedVehicleId, (newId) => {
   if (isAdmin.value && newId) {
     startUpdates(chartsRef, newId, props.user?.uid)
+    fetchDrivingEvents(newId)
+    clearInterval(eventsInterval)
+    eventsInterval = setInterval(() => fetchDrivingEvents(newId), 5000)
   } else if (isAdmin.value && !newId) {
     stopUpdates()
+    clearInterval(eventsInterval)
   }
 })
 
 // Watch for score changes and animate
 watch(driverScore, (newScore, oldScore) => {
-  if (oldScore !== undefined && newScore !== oldScore) {
+  if (oldScore !== null && oldScore !== undefined && newScore !== oldScore) {
     previousScore.value = oldScore
     scoreAnimating.value = true
 
@@ -141,117 +203,60 @@ watch(driverScore, (newScore, oldScore) => {
   }
 })
 
-// Watch for live data changes and add events
-watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soundDetected, liveData.value.acceleration, liveData.value.gyroscope], ([speed, vibration, sound, accel, gyro], [prevSpeed]) => {
-  const events = []
+// Fetch recentEvents from drivingBehavior and join with alerts by timestamp
+async function fetchDrivingEvents(vehicleId) {
+  if (!vehicleId) return
+  try {
+    const [behavior, alerts] = await Promise.all([
+      api.getDrivingBehavior(vehicleId),
+      isAdmin.value ? api.getAlerts() : api.getUserAlerts(props.user?.uid)
+    ])
 
-  if (speed > 120) {
-    lastViolation.value = { type: 'critical_speed', value: speed }
-    events.push({
-      id: Date.now(),
-      timestamp: new Date(),
-      type: 'danger',
-      message: `Critical speed: ${speed} km/h - Reduce speed immediately`,
-      reason: 'Excessive speed increases accident risk and reduces score significantly',
-      icon: 'alert-triangle'
-    })
-  } else if (speed > 100) {
-    lastViolation.value = { type: 'high_speed', value: speed }
-    events.push({
-      id: Date.now() + 1,
-      timestamp: new Date(),
-      type: 'warning',
-      message: `High speed detected: ${speed} km/h`,
-      reason: 'Speeding affects your safety score negatively',
-      icon: 'alert-circle'
-    })
-  }
+    const recentEvents = behavior?.recentEvents || []
+    // Index alerts by timestamp for O(1) lookup
+    const alertsByTimestamp = {}
+    for (const alert of (alerts || [])) {
+      if (!alertsByTimestamp[alert.timestamp]) {
+        alertsByTimestamp[alert.timestamp] = []
+      }
+      alertsByTimestamp[alert.timestamp].push(alert)
+    }
 
-  // Check for harsh acceleration
-  if (accel) {
-    const accelMagnitude = Math.sqrt(
-      Math.pow(accel.x || 0, 2) +
-      Math.pow(accel.y || 0, 2) +
-      Math.pow(accel.z || 0, 2)
-    )
-    if (accelMagnitude > 3.0) {
-      lastViolation.value = { type: 'harsh_acceleration', value: accelMagnitude.toFixed(1) }
-      events.push({
-        id: Date.now() + 4,
-        timestamp: new Date(),
-        type: 'warning',
-        message: `Harsh acceleration detected: ${accelMagnitude.toFixed(1)} m/s²`,
-        reason: 'Sudden acceleration reduces driver score and passenger comfort',
-        icon: 'alert-circle'
+    // Join recentEvents with alerts on timestamp
+    drivingEvents.value = recentEvents
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 10)
+      .map((event, i) => {
+        const matchedAlert = (alertsByTimestamp[event.timestamp] || [])
+          .find(a => a.vehicleId === vehicleId)
+        return {
+          id: event.timestamp + i,
+          timestamp: event.timestamp,
+          type: mapSeverityToType(matchedAlert?.severity),
+          message: matchedAlert?.message || event.type,
+          reason: matchedAlert ? `Severity: ${matchedAlert.severity}` : null,
+          location: event.location,
+          rawData: event.rawData,
+          acknowledged: matchedAlert?.acknowledged || false
+        }
       })
-    }
+  } catch (e) {
+    console.error('Failed to fetch driving events:', e)
   }
+}
 
-  // Check for excessive tilting
-  if (gyro) {
-    if (Math.abs(gyro.pitch || 0) > 15) {
-      lastViolation.value = { type: 'excessive_pitch', value: gyro.pitch.toFixed(1) }
-      events.push({
-        id: Date.now() + 5,
-        timestamp: new Date(),
-        type: 'danger',
-        message: `Excessive pitch angle: ${gyro.pitch.toFixed(1)}°`,
-        reason: 'Extreme vehicle tilting indicates dangerous driving behavior',
-        icon: 'alert-triangle'
-      })
-    }
-    if (Math.abs(gyro.roll || 0) > 15) {
-      lastViolation.value = { type: 'excessive_roll', value: gyro.roll.toFixed(1) }
-      events.push({
-        id: Date.now() + 6,
-        timestamp: new Date(),
-        type: 'danger',
-        message: `Excessive roll angle: ${gyro.roll.toFixed(1)}°`,
-        reason: 'Sharp turns or rollover risk detected',
-        icon: 'alert-triangle'
-      })
-    }
+function mapSeverityToType(severity) {
+  switch (severity) {
+    case 'high': return 'danger'
+    case 'medium': return 'warning'
+    case 'low': return 'info'
+    default: return 'warning'
   }
+}
 
-  if (vibration) {
-    lastViolation.value = { type: 'vibration', value: true }
-    events.push({
-      id: Date.now() + 2,
-      timestamp: new Date(),
-      type: 'warning',
-      message: 'Abnormal vibration detected',
-      reason: 'May indicate rough driving or road hazards',
-      icon: 'waves'
-    })
-  }
-
-  if (sound) {
-    events.push({
-      id: Date.now() + 3,
-      timestamp: new Date(),
-      type: 'info',
-      message: 'Unusual sound detected',
-      reason: 'Vehicle monitoring for potential issues',
-      icon: 'volume-2'
-    })
-  }
-
-  // Add events to the list
-  events.forEach(event => {
-    const exists = drivingEvents.value.some(e =>
-      e.message === event.message &&
-      (Date.now() - new Date(e.timestamp).getTime()) < 5000
-    )
-    if (!exists) {
-      drivingEvents.value.unshift(event)
-    }
-  })
-
-  // Keep only last 10 events
-  if (drivingEvents.value.length > 10) {
-    drivingEvents.value = drivingEvents.value.slice(0, 10)
-  }
-}, { deep: true })
+function clearDrivingEvents() {
+  drivingEvents.value = []
+}
 
 function getScoreChangeEvent(change, currentScore, violation) {
   const event = {
@@ -298,17 +303,15 @@ function getViolationReason(violation) {
 
   switch (violation.type) {
     case 'critical_speed':
-      return `Critical speed violation: ${violation.value} km/h exceeds safe limits`
-    case 'high_speed':
-      return `Speeding detected at ${violation.value} km/h`
+      return `Critical speed: ${violation.value} km/h exceeds safe limits`
+    case 'overspeed':
+      return `Speed limit exceeded: ${violation.value} km/h (limit: 60 km/h)`
     case 'harsh_acceleration':
-      return `Harsh acceleration: ${violation.value} m/s² detected`
-    case 'excessive_pitch':
-      return `Dangerous pitch angle: ${violation.value}° indicates aggressive braking or acceleration`
-    case 'excessive_roll':
-      return `Dangerous roll angle: ${violation.value}° indicates sharp cornering`
-    case 'vibration':
-      return 'Abnormal vibration indicates rough or reckless driving'
+      return `Extreme acceleration: ${violation.value}g detected`
+    case 'sharp_cornering':
+      return `Sharp cornering: ${violation.value}° from Gyro`
+    case 'pothole':
+      return `Pothole/bump impact: ${violation.value}g on Z-axis`
     default:
       return 'Safety violation detected'
   }
@@ -341,6 +344,8 @@ onMounted(async () => {
     if (hasVehicleSelected.value) {
       const vehicleId = isAdmin.value ? selectedVehicleId.value : selectedVehicle.value?.id
       startUpdates(chartsRef, vehicleId, props.user?.uid)
+      fetchDrivingEvents(vehicleId)
+      eventsInterval = setInterval(() => fetchDrivingEvents(vehicleId), 5000)
     }
   }, 200)
 })
@@ -400,7 +405,7 @@ onMounted(async () => {
             <div class="score-events-row">
               <div class="score-badge"
                    :class="[
-                     driverScore >= 80 ? 'score-excellent' : driverScore >= 60 ? 'score-good' : 'score-poor',
+                     driverScore >= 800 ? 'score-excellent' : driverScore >= 600 ? 'score-good' : 'score-poor',
                      { 'score-animating': scoreAnimating }
                    ]">
                 <div class="score-value" :class="{ 'value-animating': scoreAnimating }">{{ driverScore }}</div>
@@ -412,7 +417,10 @@ onMounted(async () => {
               <div class="events-section">
               <div class="events-header">
                 <h3>Recent Driving Events</h3>
-                <span class="events-count">{{ drivingEvents.length }} Events</span>
+                <div class="events-header-actions">
+                  <span class="events-count">{{ drivingEvents.length }} Events</span>
+                  <button v-if="drivingEvents.length > 0" class="events-clear-btn" @click="clearDrivingEvents">Clear</button>
+                </div>
               </div>
               <div class="events-list" v-if="drivingEvents.length > 0">
                 <div v-for="event in drivingEvents" :key="event.id" class="event-item" :class="`event-${event.type}`">
@@ -501,6 +509,90 @@ onMounted(async () => {
           :vehicleId="selectedVehicle?.id || selectedVehicleId"
         />
       </section>
+
+      <section v-if="currentSection === 'scores'" class="content-area">
+        <div class="admin-section">
+          <div class="section-header">
+            <h2>Manage Scores</h2>
+          </div>
+          <div class="cards-grid">
+            <div v-for="score in filteredScores" :key="score.vehicleId" class="card">
+              <div class="card-icon score-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div class="card-content">
+                <div class="card-field">
+                  <span class="field-label">Vehicle:</span>
+                  <span class="field-value">{{ score.plateNumber }} - {{ score.model }}</span>
+                </div>
+                <div class="card-field">
+                  <span class="field-label">Vehicle ID:</span>
+                  <span class="field-value">{{ score.vehicleId }}</span>
+                </div>
+                <div class="card-field">
+                  <span class="field-label">Current Score:</span>
+                  <template v-if="editingScore === score.vehicleId">
+                    <input
+                      type="number"
+                      v-model.number="editScoreValue"
+                      min="0"
+                      max="1000"
+                      class="score-input"
+                      @keyup.enter="saveEditScore(score.vehicleId)"
+                      @keyup.escape="cancelEditScore"
+                    />
+                  </template>
+                  <span v-else class="badge" :class="score.currentScore >= 800 ? 'badge-good' : score.currentScore >= 500 ? 'badge-warn' : 'badge-bad'">
+                    {{ score.currentScore }}
+                  </span>
+                </div>
+                <div class="card-field">
+                  <span class="field-label">Average:</span>
+                  <span class="field-value">{{ score.averageScore ?? '-' }}</span>
+                </div>
+                <div class="card-field">
+                  <span class="field-label">Trips:</span>
+                  <span class="field-value">{{ score.totalTrips || 0 }}</span>
+                </div>
+              </div>
+              <div class="card-actions score-actions">
+                <template v-if="editingScore === score.vehicleId">
+                  <button class="icon-btn small" @click="saveEditScore(score.vehicleId)" title="Save">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  </button>
+                  <button class="icon-btn small" @click="cancelEditScore" title="Cancel">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </template>
+                <template v-else>
+                  <button class="icon-btn small" @click="startEditScore(score)" title="Edit Score">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-btn small danger" @click="openScoreReset(score)" title="Reset to 1000">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  </button>
+                </template>
+              </div>
+            </div>
+            <div v-if="filteredScores.length === 0" class="empty-state">
+              <p>No scores found</p>
+            </div>
+          </div>
+        </div>
+
+        <ConfirmModal
+          :show="showScoreResetConfirm"
+          title="Reset Score"
+          :message="`Reset the score for '${scoreResetTarget?.plateNumber || scoreResetTarget?.vehicleId}' back to 1000? This will also clear trips and average.`"
+          confirmText="Reset"
+          :loading="scoreResetLoading"
+          variant="danger"
+          @confirm="confirmScoreReset"
+          @cancel="showScoreResetConfirm = false"
+        />
+      </section>
     </main>
 
     <FormModal
@@ -575,20 +667,22 @@ onMounted(async () => {
 .score-events-row {
   display: flex;
   gap: 20px;
-  align-items: stretch;
+  align-items: flex-start;
   flex-shrink: 0;
 }
 
 .score-badge {
   position: relative;
-  padding: 80px 90px;
+  padding: 40px 90px;
   border-radius: 20px;
   background: linear-gradient(135deg, #0d1830 0%, #142040 50%, #0d1830 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   min-width: 240px;
+  height: 350px;
   box-shadow:
     0 10px 50px rgba(0, 0, 0, 0.6),
     0 0 20px rgba(245, 166, 35, 0.12),
@@ -701,6 +795,10 @@ onMounted(async () => {
   padding: 20px;
   margin: 0;
   min-width: 0;
+  height: 350px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .events-header {
@@ -728,13 +826,37 @@ onMounted(async () => {
   border-radius: 12px;
 }
 
+.events-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.events-clear-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  padding: 4px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.events-clear-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
 .events-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 400px;
+  flex: 1;
   overflow-y: auto;
   padding-right: 8px;
+  min-height: 0;
 }
 
 .events-list::-webkit-scrollbar {
@@ -1075,6 +1197,207 @@ onMounted(async () => {
 
   .no-vehicle-message p {
     font-size: 14px;
+  }
+}
+
+.score-icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+  flex-shrink: 0;
+}
+
+.score-input {
+  width: 80px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+
+.score-input:focus {
+  border-color: #3b82f6;
+}
+
+.score-actions {
+  gap: 6px;
+}
+
+.badge-good {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.badge-warn {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.badge-bad {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Scores section card styles */
+.admin-section {
+  width: 100%;
+}
+
+.admin-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.admin-section .section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid #1a2d50;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.card:hover {
+  border-color: #243a6e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.field-label {
+  font-size: 12px;
+  color: #7a90b3;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 100px;
+}
+
+.field-value {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 500;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #1a2d50;
+}
+
+.icon-btn {
+  background: var(--bg-tertiary, #0f1d36);
+  border: none;
+  border-radius: 8px;
+  color: #7a90b3;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: #1e3566;
+  color: #fff;
+}
+
+.icon-btn.small {
+  padding: 8px;
+}
+
+.icon-btn.danger:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #555;
+  gap: 15px;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-label {
+    min-width: 70px;
+    font-size: 11px;
+  }
+
+  .field-value {
+    font-size: 13px;
   }
 }
 </style>

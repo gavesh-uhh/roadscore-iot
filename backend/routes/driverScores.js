@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDoc, getCollection } = require('../utils/db');
+const { getDoc, getCollection, setDoc } = require('../utils/db');
 
 router.get('/', async (req, res) => {
   try {
@@ -54,6 +54,57 @@ router.get('/user/:uid', async (req, res) => {
     }
     
     res.json(userScores[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/vehicle/:vehicleId/reset', async (req, res) => {
+  try {
+    const vehicleId = req.params.vehicleId;
+    const existing = await getDoc('driverScores', vehicleId);
+
+    const resetData = {
+      vehicleId,
+      deviceId: existing?.deviceId || '',
+      uid: existing?.uid || '',
+      currentScore: 1000,
+      previousScore: existing?.currentScore ?? 1000,
+      averageScore: 1000,
+      totalTrips: 0,
+      lastCalculated: Date.now()
+    };
+
+    await setDoc('driverScores', vehicleId, resetData);
+    res.json({ id: vehicleId, ...resetData });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/vehicle/:vehicleId', async (req, res) => {
+  try {
+    const vehicleId = req.params.vehicleId;
+    const { currentScore } = req.body;
+
+    if (currentScore === undefined || currentScore < 0 || currentScore > 1000) {
+      return res.status(400).json({ error: 'currentScore must be between 0 and 1000' });
+    }
+
+    const existing = await getDoc('driverScores', vehicleId);
+    const updateData = {
+      vehicleId,
+      deviceId: existing?.deviceId || '',
+      uid: existing?.uid || '',
+      currentScore: Math.round(currentScore),
+      previousScore: existing?.currentScore ?? 1000,
+      averageScore: existing?.averageScore ?? 1000,
+      totalTrips: existing?.totalTrips || 0,
+      lastCalculated: Date.now()
+    };
+
+    await setDoc('driverScores', vehicleId, updateData);
+    res.json({ id: vehicleId, ...updateData });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

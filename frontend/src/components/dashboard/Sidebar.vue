@@ -6,6 +6,7 @@ import {
   Users,
   MapPin,
   Activity,
+  Gauge,
   LogOut,
   Menu
 } from 'lucide-vue-next'
@@ -25,6 +26,7 @@ const allNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'driver'] },
   { id: 'vehicles', label: 'Vehicles', icon: Car, roles: ['admin', 'driver'] },
   { id: 'users', label: 'Users', icon: Users, roles: ['admin'] },
+  { id: 'scores', label: 'Scores', icon: Gauge, roles: ['admin'] },
   { id: 'trips', label: 'Live Map', icon: MapPin, roles: ['admin', 'driver'] }
 ]
 
