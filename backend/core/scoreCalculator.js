@@ -318,9 +318,6 @@ function checkForPothole(data, events) {
   const previousZ = data.previous ? data.previous.acceleration.z : jumpForce;
   const deltaZ = Math.abs(jumpForce - previousZ);
   const triggered = (vibration === true ? jumpForce > 1.1 : jumpForce > 1.35) || deltaZ > 0.25;
-  console.log(
-    `[Pothole DEBUG] X: ${baselineX.toFixed(3)}, Y: ${baselineY.toFixed(3)}, Z: ${baselineZ.toFixed(3)}, deltaZ: ${deltaZ.toFixed(3)}, vibration: ${vibration}`
-  );
   if (triggered) {
     console.log(
       "[Pothole TRIGGERED] " +
