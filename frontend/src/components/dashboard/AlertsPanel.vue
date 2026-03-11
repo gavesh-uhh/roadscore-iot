@@ -86,7 +86,7 @@ function formatTime(timestamp) {
   const date = new Date(timestamp)
   const now = new Date()
   const diff = now - date
-  
+
   if (diff < 60000) return 'Just now'
   if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago'
   if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago'
@@ -105,7 +105,7 @@ onMounted(() => {
       <Bell :size="20" />
       <span v-if="unacknowledgedCount > 0" class="alert-badge">{{ unacknowledgedCount }}</span>
     </button>
-    
+
     <div class="alerts-panel" v-if="showPanel">
       <div class="panel-header">
         <div class="header-left">
@@ -113,9 +113,9 @@ onMounted(() => {
           <span class="live-indicator">●</span>
         </div>
         <div class="header-actions">
-          <button 
-            v-if="alerts.length > 0" 
-            class="clear-all-btn" 
+          <button
+            v-if="alerts.length > 0"
+            class="clear-all-btn"
             @click="clearAllAlerts"
             title="Clear all alerts"
           >
@@ -126,19 +126,19 @@ onMounted(() => {
           </button>
         </div>
       </div>
-      
+
       <div class="panel-content">
         <div v-if="loading" class="loading">Loading...</div>
-        
+
         <div v-else-if="alerts.length === 0" class="empty">
           <BellOff :size="32" />
           <p>No alerts</p>
         </div>
-        
+
         <div v-else class="alerts-list">
-          <div 
-            v-for="alert in sortedAlerts" 
-            :key="alert.id" 
+          <div
+            v-for="alert in sortedAlerts"
+            :key="alert.id"
             class="alert-item"
             :class="[getSeverityClass(alert.severity), { acknowledged: alert.acknowledged }]"
           >
@@ -152,17 +152,17 @@ onMounted(() => {
               <div class="alert-time">{{ formatTime(alert.timestamp) }}</div>
             </div>
             <div class="alert-actions">
-              <button 
-                v-if="!alert.acknowledged" 
-                class="action-btn acknowledge" 
+              <button
+                v-if="!alert.acknowledged"
+                class="action-btn acknowledge"
                 @click="acknowledgeAlert(alert)"
                 title="Acknowledge"
               >
                 <Check :size="14" />
               </button>
-              <button 
-                v-if="isAdmin" 
-                class="action-btn delete" 
+              <button
+                v-if="isAdmin"
+                class="action-btn delete"
                 @click="deleteAlert(alert)"
                 title="Delete"
               >
@@ -185,7 +185,7 @@ onMounted(() => {
   background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
-  color: #888;
+  color: #7a90b3;
   padding: 10px;
   cursor: pointer;
   display: flex;
@@ -196,7 +196,7 @@ onMounted(() => {
 }
 
 .alert-bell:hover {
-  background: #333;
+  background: #1e3566;
   color: #fff;
 }
 
@@ -229,7 +229,7 @@ onMounted(() => {
   width: 350px;
   max-height: 450px;
   background: var(--bg-secondary);
-  border: 1px solid #222;
+  border: 1px solid #1a2d50;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   z-index: 1000;
@@ -241,7 +241,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 15px 20px;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #1a2d50;
 }
 
 .header-left {
@@ -297,7 +297,7 @@ onMounted(() => {
 .close-btn {
   background: none;
   border: none;
-  color: #666;
+  color: #7a90b3;
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -315,7 +315,7 @@ onMounted(() => {
 .loading, .empty {
   padding: 40px 20px;
   text-align: center;
-  color: #666;
+  color: #7a90b3;
 }
 
 .empty p {
@@ -334,7 +334,7 @@ onMounted(() => {
   border-radius: 8px;
   margin-bottom: 8px;
   background: var(--bg-card);
-  border-left: 3px solid #666;
+  border-left: 3px solid #2a4070;
   transition: all 0.15s ease;
 }
 
@@ -355,7 +355,7 @@ onMounted(() => {
 }
 
 .alert-item.severity-low {
-  border-left-color: #3b82f6;
+  border-left-color: #f5a623;
 }
 
 .alert-icon {
@@ -379,8 +379,8 @@ onMounted(() => {
 }
 
 .severity-low .alert-icon {
-  background: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
+  background: rgba(245, 166, 35, 0.15);
+  color: #f5a623;
 }
 
 .alert-content {

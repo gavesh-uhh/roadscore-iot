@@ -34,14 +34,14 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
         Add {{ title.replace('Manage ', '').slice(0, -1) }}
       </button>
     </div>
-    
+
     <div class="cards-grid">
       <div v-for="item in items" :key="item.id" class="card">
         <div class="card-icon" :class="{ user: isUsers, vehicle: isVehicles }">
           <User v-if="isUsers" :size="24" />
           <Car v-if="isVehicles" :size="24" />
         </div>
-        
+
         <div class="card-content">
           <div v-for="col in columns" :key="col.key" class="card-field">
             <span class="field-label">{{ col.label }}:</span>
@@ -49,7 +49,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
             <span v-else class="field-value">{{ col.render ? col.render(item) : (item[col.key] || col.default || '-') }}</span>
           </div>
         </div>
-        
+
         <div v-if="canEdit || canDelete" class="card-actions">
           <button v-if="canEdit" class="icon-btn small" @click="$emit('edit', item)" title="Edit">
             <Edit :size="16" />
@@ -59,7 +59,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
           </button>
         </div>
       </div>
-      
+
       <div v-if="items.length === 0" class="empty-state">
         <User v-if="isUsers" :size="48" />
         <Car v-if="isVehicles" :size="48" />
@@ -101,12 +101,12 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 }
 
 .btn.primary {
-  background: #3b82f6;
-  color: #fff;
+  background: #f5a623;
+  color: #06101f;
 }
 
 .btn.primary:hover {
-  background: #2563eb;
+  background: #d97706;
 }
 
 .cards-grid {
@@ -117,7 +117,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 
 .card {
   background: var(--bg-secondary);
-  border: 1px solid #222;
+  border: 1px solid #1a2d50;
   border-radius: 12px;
   padding: 20px;
   transition: all 0.2s ease;
@@ -127,7 +127,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 }
 
 .card:hover {
-  border-color: #333;
+  border-color: #243a6e;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -143,8 +143,8 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 }
 
 .card-icon.user {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #f5a623 0%, #d97706 100%);
+  color: #06101f;
 }
 
 .card-icon.vehicle {
@@ -168,7 +168,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 
 .field-label {
   font-size: 12px;
-  color: #666;
+  color: #7a90b3;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -195,14 +195,14 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
   display: flex;
   gap: 8px;
   padding-top: 10px;
-  border-top: 1px solid #222;
+  border-top: 1px solid #1a2d50;
 }
 
 .icon-btn {
   background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
-  color: #888;
+  color: #7a90b3;
   padding: 10px;
   cursor: pointer;
   display: flex;
@@ -212,7 +212,7 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
 }
 
 .icon-btn:hover {
-  background: #333;
+  background: #1e3566;
   color: #fff;
 }
 
@@ -247,25 +247,25 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
     align-items: stretch;
     gap: 15px;
   }
-  
+
   .btn {
     justify-content: center;
   }
-  
+
   .cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 15px;
   }
-  
+
   .card {
     padding: 16px;
   }
-  
+
   .card-icon {
     width: 40px;
     height: 40px;
   }
-  
+
   .card-icon :deep(svg) {
     width: 20px;
     height: 20px;
@@ -276,16 +276,16 @@ const isVehicles = props.title.toLowerCase().includes('vehicle')
   .cards-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .field-label {
     min-width: 70px;
     font-size: 11px;
   }
-  
+
   .field-value {
     font-size: 13px;
   }
-  
+
   .badge {
     padding: 3px 10px;
     font-size: 11px;

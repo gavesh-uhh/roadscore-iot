@@ -32,8 +32,8 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
     <div class="header-left">
       <h1>{{ title }}</h1>
       <div v-if="showVehicleSelector" class="vehicle-selector-inline">
-        <select 
-          :value="selectedVehicleId" 
+        <select
+          :value="selectedVehicleId"
           @change="$emit('update:selectedVehicleId', $event.target.value)"
           class="vehicle-select-inline"
         >
@@ -47,11 +47,11 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
     <div class="header-right">
       <div class="search-box" v-if="showSearch">
         <Search :size="18" />
-        <input 
-          type="text" 
+        <input
+          type="text"
           :value="searchQuery"
           @input="$emit('update:searchQuery', $event.target.value)"
-          placeholder="Search..." 
+          placeholder="Search..."
         />
       </div>
       <AlertsPanel :isAdmin="isAdmin" :userId="userId" />
@@ -72,7 +72,7 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
   justify-content: space-between;
   padding: 15px 25px;
   background: var(--bg-secondary);
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #1a2d50;
 }
 
 .top-header h1 {
@@ -94,8 +94,8 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
 
 .vehicle-select-inline {
   padding: 8px 15px;
-  background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 100%);
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: linear-gradient(135deg, #0d1830 0%, #142040 100%);
+  border: 1px solid rgba(245, 166, 35, 0.3);
   border-radius: 8px;
   color: #fff;
   font-size: 14px;
@@ -105,23 +105,23 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
 }
 
 .vehicle-select-inline option {
-  background: #1a1f2e;
+  background: #0d1830;
   color: #fff;
   padding: 8px;
 }
 
 .vehicle-select-inline option:hover {
-  background: #252b3b;
+  background: #142040;
 }
 
 .vehicle-select-inline:focus {
   outline: none;
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+  border-color: #f5a623;
+  box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.2);
 }
 
 .vehicle-select-inline:hover {
-  border-color: rgba(167, 139, 250, 0.5);
+  border-color: rgba(245, 166, 35, 0.5);
 }
 
 .header-right {
@@ -137,7 +137,7 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
   background: var(--bg-tertiary);
   padding: 8px 15px;
   border-radius: 8px;
-  color: #666;
+  color: #7a90b3;
 }
 
 .search-box input {
@@ -149,14 +149,14 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
 }
 
 .search-box input::placeholder {
-  color: #555;
+  color: #4a6080;
 }
 
 .icon-btn {
   background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
-  color: #888;
+  color: #7a90b3;
   padding: 10px;
   cursor: pointer;
   display: flex;
@@ -165,7 +165,7 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
 }
 
 .icon-btn:hover {
-  background: #333;
+  background: #1e3566;
   color: #fff;
 }
 
@@ -178,48 +178,48 @@ defineEmits(['update:searchQuery', 'logout', 'update:selectedVehicleId'])
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #f5a623;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 14px;
-  color: #fff;
+  color: #06101f;
 }
 
 @media (max-width: 768px) {
   .top-header {
     padding: 12px 15px;
   }
-  
+
   .top-header h1 {
     font-size: 16px;
   }
-  
+
   .header-left {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .vehicle-select-inline {
     min-width: 200px;
     font-size: 13px;
     padding: 6px 12px;
   }
-  
+
   .header-right {
     gap: 8px;
   }
-  
+
   .search-box {
     display: none;
   }
-  
+
   .icon-btn {
     padding: 8px;
   }
-  
+
   .user-avatar {
     width: 32px;
     height: 32px;

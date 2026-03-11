@@ -19,11 +19,11 @@ defineEmits(['close', 'save'])
           <X :size="20" />
         </button>
       </div>
-      
+
       <div class="modal-body">
         <slot></slot>
       </div>
-      
+
       <div class="modal-footer">
         <button class="btn secondary" @click="$emit('close')">Cancel</button>
         <button class="btn primary" @click="$emit('save')" :disabled="loading">
@@ -47,7 +47,7 @@ defineEmits(['close', 'save'])
 
 .modal {
   background: var(--bg-secondary);
-  border: 1px solid #222;
+  border: 1px solid #1a2d50;
   border-radius: 12px;
   width: 100%;
   max-width: 450px;
@@ -58,7 +58,7 @@ defineEmits(['close', 'save'])
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #1a2d50;
 }
 
 .modal-header h3 {
@@ -71,7 +71,7 @@ defineEmits(['close', 'save'])
   background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
-  color: #888;
+  color: #7a90b3;
   padding: 10px;
   cursor: pointer;
   display: flex;
@@ -80,7 +80,7 @@ defineEmits(['close', 'save'])
 }
 
 .icon-btn:hover {
-  background: #333;
+  background: #1e3566;
   color: #fff;
 }
 
@@ -93,7 +93,7 @@ defineEmits(['close', 'save'])
   justify-content: flex-end;
   gap: 10px;
   padding: 20px;
-  border-top: 1px solid #222;
+  border-top: 1px solid #1a2d50;
 }
 
 .btn {
@@ -110,12 +110,12 @@ defineEmits(['close', 'save'])
 }
 
 .btn.primary {
-  background: #3b82f6;
-  color: #fff;
+  background: #f5a623;
+  color: #06101f;
 }
 
 .btn.primary:hover {
-  background: #2563eb;
+  background: #d97706;
 }
 
 .btn.primary:disabled {
@@ -125,11 +125,11 @@ defineEmits(['close', 'save'])
 
 .btn.secondary {
   background: var(--bg-tertiary);
-  color: #888;
+  color: #7a90b3;
 }
 
 .btn.secondary:hover {
-  background: #333;
+  background: #1e3566;
   color: #fff;
 }
 
@@ -138,7 +138,7 @@ defineEmits(['close', 'save'])
     margin: 15px;
     max-width: calc(100% - 30px);
   }
-  
+
   .modal-header,
   .modal-body,
   .modal-footer {
@@ -151,11 +151,11 @@ defineEmits(['close', 'save'])
     margin: 10px;
     max-width: calc(100% - 20px);
   }
-  
+
   .modal-footer {
     flex-direction: column-reverse;
   }
-  
+
   .btn {
     width: 100%;
     justify-content: center;

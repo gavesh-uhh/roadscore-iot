@@ -25,7 +25,7 @@ body {
 
 a {
   text-decoration: none;
-  color: #dc2626;
+  color: #f5a623;
   transition: 0.2s;
 }
 
@@ -39,17 +39,17 @@ a:hover {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1f2e;
+  background: #0d1830;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  background: linear-gradient(135deg, #f5a623, #fbbf24);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #a78bfa, #c4b5fd);
+  background: linear-gradient(135deg, #fbbf24, #fde68a);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -58,22 +58,22 @@ a:hover {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333 #161616;
+  scrollbar-color: #f5a623 #0d1830;
 }
 
 @media (max-width: 768px) {
-  button, 
+  button,
   select,
   [role="button"] {
     min-height: 44px;
   }
-  
+
   html, body {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
-  
+
   #app {
     overflow: auto;
     height: auto;

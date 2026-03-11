@@ -25,34 +25,34 @@ function initSpeedChart() {
   if (!speedChartRef.value) return
   if (speedChart) speedChart.dispose()
   speedChart = echarts.init(speedChartRef.value)
-  
+
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(0,0,0,0.8)',
-      borderColor: '#333',
+      borderColor: '#1e3566',
       textStyle: { color: '#fff' },
       axisPointer: {
         type: 'cross',
-        crossStyle: { color: '#3b82f6' }
+        crossStyle: { color: '#f5a623' }
       }
     },
     grid: { left: '12%', right: '5%', top: '15%', bottom: '15%' },
     xAxis: {
       type: 'category',
       data: props.timeLabels,
-      axisLine: { lineStyle: { color: '#333' } },
-      axisLabel: { color: '#666', fontSize: 10 },
+      axisLine: { lineStyle: { color: '#1e3566' } },
+      axisLabel: { color: '#7a90b3', fontSize: 10 },
       boundaryGap: false
     },
     yAxis: {
       type: 'value',
       min: 0,
       max: 120,
-      axisLine: { lineStyle: { color: '#333' } },
-      axisLabel: { color: '#666' },
-      splitLine: { lineStyle: { color: '#222', type: 'dashed' } }
+      axisLine: { lineStyle: { color: '#1e3566' } },
+      axisLabel: { color: '#7a90b3' },
+      splitLine: { lineStyle: { color: '#1a2d50', type: 'dashed' } }
     },
     series: [
       {
@@ -62,27 +62,27 @@ function initSpeedChart() {
         symbol: 'circle',
         symbolSize: 8,
         showSymbol: true,
-        lineStyle: { color: '#3b82f6', width: 3 },
-        itemStyle: { 
-          color: '#3b82f6',
+        lineStyle: { color: '#f5a623', width: 3 },
+        itemStyle: {
+          color: '#f5a623',
           borderColor: '#fff',
           borderWidth: 2
         },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(59, 130, 246, 0.5)' },
-            { offset: 0.5, color: 'rgba(59, 130, 246, 0.2)' },
-            { offset: 1, color: 'rgba(59, 130, 246, 0)' }
+            { offset: 0, color: 'rgba(245, 166, 35, 0.5)' },
+            { offset: 0.5, color: 'rgba(245, 166, 35, 0.2)' },
+            { offset: 1, color: 'rgba(245, 166, 35, 0)' }
           ])
         },
         emphasis: {
           focus: 'series',
           itemStyle: {
-            color: '#60a5fa',
+            color: '#fbbf24',
             borderColor: '#fff',
             borderWidth: 3,
             shadowBlur: 10,
-            shadowColor: 'rgba(59, 130, 246, 0.5)'
+            shadowColor: 'rgba(245, 166, 35, 0.5)'
           }
         }
       }
@@ -95,19 +95,19 @@ function initAccelerationChart() {
   if (!accelerationChartRef.value) return
   if (accelerationChart) accelerationChart.dispose()
   accelerationChart = echarts.init(accelerationChartRef.value)
-  
+
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(0,0,0,0.8)',
-      borderColor: '#333',
+      borderColor: '#1e3566',
       textStyle: { color: '#fff' },
       axisPointer: { type: 'cross' }
     },
     legend: {
       data: ['X', 'Y', 'Z'],
-      textStyle: { color: '#888' },
+      textStyle: { color: '#7a90b3' },
       top: 0,
       right: 10,
       itemWidth: 12,
@@ -118,16 +118,16 @@ function initAccelerationChart() {
       type: 'category',
       data: props.timeLabels,
       boundaryGap: false,
-      axisLine: { lineStyle: { color: '#333' } },
-      axisLabel: { color: '#666', fontSize: 10 }
+      axisLine: { lineStyle: { color: '#1e3566' } },
+      axisLabel: { color: '#7a90b3', fontSize: 10 }
     },
     yAxis: {
       type: 'value',
       min: -2,
       max: 2,
-      axisLine: { lineStyle: { color: '#333' } },
-      axisLabel: { color: '#666' },
-      splitLine: { lineStyle: { color: '#222', type: 'dashed' } }
+      axisLine: { lineStyle: { color: '#1e3566' } },
+      axisLabel: { color: '#7a90b3' },
+      splitLine: { lineStyle: { color: '#1a2d50', type: 'dashed' } }
     },
     series: [
       {
@@ -190,19 +190,19 @@ function initGyroscopeChart() {
   if (!gyroscopeChartRef.value) return
   if (gyroscopeChart) gyroscopeChart.dispose()
   gyroscopeChart = echarts.init(gyroscopeChartRef.value)
-  
+
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(0,0,0,0.8)',
-      borderColor: '#333',
+      borderColor: '#1e3566',
       textStyle: { color: '#fff' },
       axisPointer: { type: 'cross' }
     },
     legend: {
       data: ['Pitch', 'Roll', 'Yaw'],
-      textStyle: { color: '#888' },
+      textStyle: { color: '#7a90b3' },
       top: 0,
       right: 10,
       itemWidth: 12,
@@ -213,16 +213,16 @@ function initGyroscopeChart() {
       type: 'category',
       data: props.timeLabels,
       boundaryGap: false,
-      axisLine: { lineStyle: { color: '#333' } },
-      axisLabel: { color: '#666', fontSize: 10 }
+      axisLine: { lineStyle: { color: '#1e3566' } },
+      axisLabel: { color: '#7a90b3', fontSize: 10 }
     },
     yAxis: {
       type: 'value',
       min: -10,
       max: 10,
-      axisLine: { lineStyle: { color: '#333' } },
-      axisLabel: { color: '#666' },
-      splitLine: { lineStyle: { color: '#222', type: 'dashed' } }
+      axisLine: { lineStyle: { color: '#1e3566' } },
+      axisLabel: { color: '#7a90b3' },
+      splitLine: { lineStyle: { color: '#1a2d50', type: 'dashed' } }
     },
     series: [
       {
@@ -233,12 +233,12 @@ function initGyroscopeChart() {
         symbol: 'circle',
         symbolSize: 6,
         showSymbol: true,
-        lineStyle: { color: '#8b5cf6', width: 2 },
-        itemStyle: { color: '#8b5cf6', borderColor: '#fff', borderWidth: 1 },
+        lineStyle: { color: '#f5a623', width: 2 },
+        itemStyle: { color: '#f5a623', borderColor: '#fff', borderWidth: 1 },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(139, 92, 246, 0.4)' },
-            { offset: 1, color: 'rgba(139, 92, 246, 0)' }
+            { offset: 0, color: 'rgba(245, 166, 35, 0.35)' },
+            { offset: 1, color: 'rgba(245, 166, 35, 0)' }
           ])
         }
       },
@@ -283,9 +283,9 @@ function initGyroscopeChart() {
 
 function updateCharts() {
   if (speedChart) {
-    speedChart.setOption({ 
-      xAxis: { data: props.timeLabels }, 
-      series: [{ data: props.speedHistory }] 
+    speedChart.setOption({
+      xAxis: { data: props.timeLabels },
+      series: [{ data: props.speedHistory }]
     })
   }
   if (accelerationChart) {
@@ -343,12 +343,12 @@ onUnmounted(() => {
       <h3>Speed Over Time</h3>
       <div ref="speedChartRef" class="chart"></div>
     </div>
-    
+
     <div class="chart-card">
       <h3>Acceleration (X, Y, Z)</h3>
       <div ref="accelerationChartRef" class="chart"></div>
     </div>
-    
+
     <div class="chart-card">
       <h3>Gyroscope (Pitch, Roll, Yaw)</h3>
       <div ref="gyroscopeChartRef" class="chart"></div>
@@ -366,7 +366,7 @@ onUnmounted(() => {
 
 .chart-card {
   background: var(--bg-secondary);
-  border: 1px solid #222;
+  border: 1px solid #1a2d50;
   border-radius: 12px;
   padding: 20px;
   overflow: hidden;
@@ -376,7 +376,7 @@ onUnmounted(() => {
 .chart-card h3 {
   font-size: 14px;
   font-weight: 600;
-  color: #888;
+  color: #7a90b3;
   margin-bottom: 15px;
 }
 
@@ -401,16 +401,16 @@ onUnmounted(() => {
   .charts-grid {
     touch-action: pan-y;
   }
-  
+
   .chart-card {
     padding: 15px;
   }
-  
+
   .chart-card h3 {
     font-size: 12px;
     margin-bottom: 10px;
   }
-  
+
   .chart {
     height: 180px;
   }

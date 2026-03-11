@@ -13,14 +13,14 @@ const emit = defineEmits(['switch-to-login', 'signup-success'])
 
 const handleSignup = async () => {
   errorMessage.value = ''
-  
+
   if (password.value !== confirmPassword.value) {
     errorMessage.value = 'Passwords do not match'
     return
   }
-  
+
   isLoading.value = true
-  
+
   try {
     const result = await api.signup(name.value, email.value, password.value)
     emit('signup-success', result.user)
@@ -36,7 +36,7 @@ const handleSignup = async () => {
   <div class="auth-page">
     <div class="auth-card">
       <h1>Create Account</h1>
-      
+
       <form @submit.prevent="handleSignup">
         <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
 
@@ -84,7 +84,7 @@ const handleSignup = async () => {
 
 .auth-card {
   background: var(--bg-secondary);
-  border: 1px solid #222;
+  border: 1px solid #1a2d50;
   border-radius: 12px;
   padding: 40px;
   width: 100%;
@@ -122,7 +122,7 @@ input {
   width: 100%;
   padding: 12px 15px;
   background: var(--bg-tertiary);
-  border: 1px solid #333;
+  border: 1px solid #1a2d50;
   border-radius: 8px;
   color: #fff;
   font-size: 14px;
@@ -130,24 +130,24 @@ input {
 
 input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #f5a623;
 }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #222 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #0d1830 inset !important;
   -webkit-text-fill-color: #fff !important;
-  border: 1px solid #333;
+  border: 1px solid #1a2d50;
 }
 
 button {
   width: 100%;
   padding: 12px;
-  background: #3b82f6;
+  background: #f5a623;
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: #06101f;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -155,7 +155,7 @@ button {
 }
 
 button:hover {
-  background: #2563eb;
+  background: #d97706;
 }
 
 button:disabled {
@@ -171,7 +171,7 @@ button:disabled {
 }
 
 .switch-text a {
-  color: #3b82f6;
+  color: #f5a623;
   text-decoration: none;
 }
 
@@ -183,17 +183,17 @@ button:disabled {
   .auth-card {
     padding: 25px 20px;
   }
-  
+
   h1 {
     font-size: 20px;
     margin-bottom: 20px;
   }
-  
+
   input {
     font-size: 16px;
     padding: 14px 15px;
   }
-  
+
   button {
     padding: 14px;
   }

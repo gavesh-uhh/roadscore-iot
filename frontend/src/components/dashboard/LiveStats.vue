@@ -17,7 +17,7 @@ defineProps({
         <span class="stat-label">Speed (km/h)</span>
       </div>
     </div>
-    
+
     <div class="stat-card">
       <div class="stat-icon green">
         <Navigation :size="24" />
@@ -27,7 +27,7 @@ defineProps({
         <span class="stat-label">GPS Location</span>
       </div>
     </div>
-    
+
     <div class="stat-card">
       <div class="stat-icon" :class="liveData.vibration ? 'red' : 'gray'">
         <Waves :size="24" />
@@ -37,7 +37,7 @@ defineProps({
         <span class="stat-label">Vibration</span>
       </div>
     </div>
-    
+
     <div class="stat-card">
       <div class="stat-icon" :class="liveData.soundDetected ? 'red' : 'gray'">
         <Volume2 :size="24" />
@@ -47,7 +47,7 @@ defineProps({
         <span class="stat-label">Sound</span>
       </div>
     </div>
-    
+
     <div class="stat-card">
       <div class="stat-icon purple">
         <RotateCcw :size="24" />
@@ -69,8 +69,8 @@ defineProps({
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 100%);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: linear-gradient(135deg, #0d1830 0%, #142040 100%);
+  border: 1px solid rgba(245, 166, 35, 0.2);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -80,8 +80,8 @@ defineProps({
 }
 
 .stat-card:hover {
-  border-color: rgba(167, 139, 250, 0.4);
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);
+  border-color: rgba(245, 166, 35, 0.4);
+  box-shadow: 0 4px 20px rgba(245, 166, 35, 0.12);
   transform: translateY(-2px);
 }
 
@@ -94,16 +94,16 @@ defineProps({
   justify-content: center;
 }
 
-.stat-icon.blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-.stat-icon.green { 
-  background: rgba(34, 197, 94, 0.2); 
+.stat-icon.blue { background: rgba(245, 166, 35, 0.15); color: #f5a623; }
+.stat-icon.green {
+  background: rgba(34, 197, 94, 0.2);
   color: #22c55e;
 }
-.stat-icon.red { 
-  background: rgba(239, 68, 68, 0.2); 
+.stat-icon.red {
+  background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
 }
-.stat-icon.purple { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+.stat-icon.purple { background: rgba(245, 166, 35, 0.12); color: #fbbf24; }
 .stat-icon.gray { background: var(--bg-tertiary); color: #666; }
 
 .stat-info {
@@ -119,7 +119,7 @@ defineProps({
 
 .stat-label {
   font-size: 12px;
-  color: #666;
+  color: #7a90b3;
 }
 
 @media (max-width: 900px) {
@@ -138,16 +138,16 @@ defineProps({
   .stat-card {
     padding: 12px;
   }
-  
+
   .stat-icon {
     width: 36px;
     height: 36px;
   }
-  
+
   .stat-value {
     font-size: 16px;
   }
-  
+
   .stat-label {
     font-size: 11px;
   }

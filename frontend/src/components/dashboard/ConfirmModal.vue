@@ -44,19 +44,19 @@ defineEmits(['confirm', 'cancel'])
             <X :size="20" />
           </button>
         </div>
-        
+
         <div class="modal-body">
           <p>{{ message }}</p>
         </div>
-        
+
         <div class="modal-footer">
           <button class="btn secondary" @click="$emit('cancel')" :disabled="loading">
             {{ cancelText }}
           </button>
-          <button 
-            class="btn" 
-            :class="variant" 
-            @click="$emit('confirm')" 
+          <button
+            class="btn"
+            :class="variant"
+            @click="$emit('confirm')"
             :disabled="loading"
           >
             {{ loading ? 'Processing...' : confirmText }}
@@ -86,7 +86,7 @@ defineEmits(['confirm', 'cancel'])
 
 .modal {
   background: var(--bg-secondary);
-  border: 1px solid #222;
+  border: 1px solid #1a2d50;
   border-radius: 12px;
   width: 100%;
   max-width: 400px;
@@ -94,11 +94,11 @@ defineEmits(['confirm', 'cancel'])
 }
 
 @keyframes slideIn {
-  from { 
+  from {
     opacity: 0;
     transform: scale(0.95) translateY(-10px);
   }
-  to { 
+  to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
@@ -109,7 +109,7 @@ defineEmits(['confirm', 'cancel'])
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #1a2d50;
 }
 
 .header-content {
@@ -138,8 +138,8 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .icon-wrapper.info {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
+  background: rgba(245, 166, 35, 0.15);
+  color: #f5a623;
 }
 
 .modal-header h3 {
@@ -152,7 +152,7 @@ defineEmits(['confirm', 'cancel'])
   background: var(--bg-tertiary);
   border: none;
   border-radius: 8px;
-  color: #888;
+  color: #7a90b3;
   padding: 10px;
   cursor: pointer;
   display: flex;
@@ -162,7 +162,7 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .icon-btn:hover {
-  background: #333;
+  background: #1e3566;
   color: #fff;
 }
 
@@ -171,7 +171,7 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .modal-body p {
-  color: #888;
+  color: #7a90b3;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -181,7 +181,7 @@ defineEmits(['confirm', 'cancel'])
   justify-content: flex-end;
   gap: 10px;
   padding: 20px;
-  border-top: 1px solid #222;
+  border-top: 1px solid #1a2d50;
 }
 
 .btn {
@@ -205,7 +205,7 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .btn.secondary:hover:not(:disabled) {
-  background: #333;
+  background: #1e3566;
 }
 
 .btn.danger {
@@ -227,12 +227,12 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .btn.info {
-  background: #3b82f6;
-  color: #fff;
+  background: #f5a623;
+  color: #06101f;
 }
 
 .btn.info:hover:not(:disabled) {
-  background: #2563eb;
+  background: #d97706;
 }
 
 @media (max-width: 480px) {
@@ -240,31 +240,31 @@ defineEmits(['confirm', 'cancel'])
     margin: 15px;
     max-width: calc(100% - 30px);
   }
-  
+
   .modal-header,
   .modal-body,
   .modal-footer {
     padding: 15px;
   }
-  
+
   .modal-footer {
     flex-direction: column-reverse;
   }
-  
+
   .btn {
     width: 100%;
     text-align: center;
   }
-  
+
   .icon-wrapper {
     width: 36px;
     height: 36px;
   }
-  
+
   .modal-header h3 {
     font-size: 15px;
   }
-  
+
   .modal-body p {
     font-size: 13px;
   }

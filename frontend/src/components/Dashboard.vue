@@ -120,21 +120,21 @@ watch(driverScore, (newScore, oldScore) => {
   if (oldScore !== undefined && newScore !== oldScore) {
     previousScore.value = oldScore
     scoreAnimating.value = true
-    
+
     // Add event based on score change
     const scoreDiff = newScore - oldScore
     const scoreEvent = getScoreChangeEvent(scoreDiff, newScore, lastViolation.value)
-    
+
     drivingEvents.value.unshift(scoreEvent)
     if (drivingEvents.value.length > 10) {
       drivingEvents.value = drivingEvents.value.slice(0, 10)
     }
-    
+
     // Clear last violation after using it
     if (scoreDiff < 0) {
       lastViolation.value = null
     }
-    
+
     setTimeout(() => {
       scoreAnimating.value = false
     }, 600)
@@ -144,7 +144,7 @@ watch(driverScore, (newScore, oldScore) => {
 // Watch for live data changes and add events
 watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soundDetected, liveData.value.acceleration, liveData.value.gyroscope], ([speed, vibration, sound, accel, gyro], [prevSpeed]) => {
   const events = []
-  
+
   if (speed > 120) {
     lastViolation.value = { type: 'critical_speed', value: speed }
     events.push({
@@ -166,7 +166,7 @@ watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soun
       icon: 'alert-circle'
     })
   }
-  
+
   // Check for harsh acceleration
   if (accel) {
     const accelMagnitude = Math.sqrt(
@@ -186,7 +186,7 @@ watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soun
       })
     }
   }
-  
+
   // Check for excessive tilting
   if (gyro) {
     if (Math.abs(gyro.pitch || 0) > 15) {
@@ -212,7 +212,7 @@ watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soun
       })
     }
   }
-  
+
   if (vibration) {
     lastViolation.value = { type: 'vibration', value: true }
     events.push({
@@ -224,7 +224,7 @@ watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soun
       icon: 'waves'
     })
   }
-  
+
   if (sound) {
     events.push({
       id: Date.now() + 3,
@@ -235,18 +235,18 @@ watch(() => [liveData.value.speed, liveData.value.vibration, liveData.value.soun
       icon: 'volume-2'
     })
   }
-  
+
   // Add events to the list
   events.forEach(event => {
-    const exists = drivingEvents.value.some(e => 
-      e.message === event.message && 
+    const exists = drivingEvents.value.some(e =>
+      e.message === event.message &&
       (Date.now() - new Date(e.timestamp).getTime()) < 5000
     )
     if (!exists) {
       drivingEvents.value.unshift(event)
     }
   })
-  
+
   // Keep only last 10 events
   if (drivingEvents.value.length > 10) {
     drivingEvents.value = drivingEvents.value.slice(0, 10)
@@ -261,7 +261,7 @@ function getScoreChangeEvent(change, currentScore, violation) {
     change: change,
     icon: change > 0 ? 'trend-up' : 'trend-down'
   }
-  
+
   if (change > 0) {
     if (change >= 5) {
       event.message = `Excellent driving! +${change} points`
@@ -289,13 +289,13 @@ function getScoreChangeEvent(change, currentScore, violation) {
       }
     }
   }
-  
+
   return event
 }
 
 function getViolationReason(violation) {
   if (!violation) return 'Multiple safety violations detected'
-  
+
   switch (violation.type) {
     case 'critical_speed':
       return `Critical speed violation: ${violation.value} km/h exceeds safe limits`
@@ -328,7 +328,7 @@ function formatEventTime(timestamp) {
   const date = new Date(timestamp)
   const now = new Date()
   const diff = now - date
-  
+
   if (diff < 60000) return 'Just now'
   if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
@@ -336,7 +336,7 @@ function formatEventTime(timestamp) {
 
 onMounted(async () => {
   await fetchAll()
-  
+
   setTimeout(() => {
     if (hasVehicleSelected.value) {
       const vehicleId = isAdmin.value ? selectedVehicleId.value : selectedVehicle.value?.id
@@ -357,7 +357,7 @@ onMounted(async () => {
       @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed"
       @logout="$emit('logout')"
     />
-    
+
     <main class="main-content">
       <TopHeader
         :title="navLabels[currentSection]"
@@ -373,7 +373,7 @@ onMounted(async () => {
         @update:selectedVehicleId="selectedVehicleId = $event"
         @logout="$emit('logout')"
       />
-      
+
       <DriverNav
         v-if="!isAdmin"
         :currentSection="currentSection"
@@ -383,22 +383,22 @@ onMounted(async () => {
         @change-section="changeSection"
         v-model:selectedVehicleId="selectedVehicleId"
       />
-      
+
       <section v-if="currentSection === 'dashboard'" class="content-area dashboard-section">
         <div v-if="!isAdmin && !hasVehicleSelected" class="no-vehicle-message">
           <h2>No Vehicle Assigned</h2>
           <p>Please contact your administrator to assign a vehicle to your account.</p>
         </div>
-        
+
         <div v-else-if="isAdmin && !hasVehicleSelected" class="no-vehicle-message">
           <h2>Select a Vehicle</h2>
           <p>Please select a vehicle from the dropdown above to monitor its live data.</p>
         </div>
-        
+
         <template v-else>
           <div class="dashboard-layout">
-            <div class="driver-score-hero">
-              <div class="score-badge" 
+            <div class="score-events-row">
+              <div class="score-badge"
                    :class="[
                      driverScore >= 80 ? 'score-excellent' : driverScore >= 60 ? 'score-good' : 'score-poor',
                      { 'score-animating': scoreAnimating }
@@ -407,10 +407,9 @@ onMounted(async () => {
                 <div class="score-label">Driver Score</div>
                 <div class="score-subtitle">Real-time Performance Rating</div>
               </div>
-            </div>
-            
-            <!-- Driving Events List -->
-            <div class="events-section">
+
+              <!-- Driving Events List -->
+              <div class="events-section">
               <div class="events-header">
                 <h3>Recent Driving Events</h3>
                 <span class="events-count">{{ drivingEvents.length }} Events</span>
@@ -445,7 +444,8 @@ onMounted(async () => {
                 <p>No recent events. Drive safely!</p>
               </div>
             </div>
-            
+            </div>
+
             <div class="stats-below">
               <LiveStats :liveData="liveData" />
             </div>
@@ -465,7 +465,7 @@ onMounted(async () => {
           </div>
         </template>
       </section>
-      
+
       <section v-if="currentSection === 'users'" class="content-area">
         <DataCards
           title="Manage Users"
@@ -479,7 +479,7 @@ onMounted(async () => {
           @delete="(item) => openDeleteConfirm('user', item.id, item.name)"
         />
       </section>
-      
+
       <section v-if="currentSection === 'vehicles'" class="content-area">
         <DataCards
           title="Manage Vehicles"
@@ -493,16 +493,16 @@ onMounted(async () => {
           @delete="(item) => openDeleteConfirm('vehicle', item.id, item.plateNumber)"
         />
       </section>
-      
+
       <section v-if="currentSection === 'trips'" class="content-area">
-        <LiveMap 
+        <LiveMap
           :deviceId="selectedVehicle?.deviceId"
           :liveData="liveData"
           :vehicleId="selectedVehicle?.id || selectedVehicleId"
         />
       </section>
     </main>
-    
+
     <FormModal
       :show="showModal"
       :title="(editingItem ? 'Edit ' : 'Add ') + modalType.charAt(0).toUpperCase() + modalType.slice(1)"
@@ -519,7 +519,7 @@ onMounted(async () => {
         @update:formData="formData = $event"
       />
     </FormModal>
-    
+
     <ConfirmModal
       :show="showConfirmModal"
       title="Delete Item"
@@ -566,36 +566,35 @@ onMounted(async () => {
 .dashboard-layout {
   display: flex;
   flex-direction: column;
-  gap: 35px;
+  gap: 16px;
   overflow-y: auto;
-  padding: 20px;
-  padding-bottom: 30px;
+  padding: 16px 20px;
+  padding-bottom: 24px;
 }
 
-.driver-score-hero {
+.score-events-row {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 20px;
+  gap: 20px;
+  align-items: stretch;
   flex-shrink: 0;
 }
 
 .score-badge {
   position: relative;
-  padding: 50px 70px;
-  border-radius: 25px;
-  background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 50%, #1a1f2e 100%);
+  padding: 80px 90px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0d1830 0%, #142040 50%, #0d1830 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-width: 350px;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    0 0 80px rgba(139, 92, 246, 0.15),
-    inset 0 1px 0 rgba(167, 139, 250, 0.1);
+  gap: 10px;
+  min-width: 240px;
+  box-shadow:
+    0 10px 50px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(245, 166, 35, 0.12),
+    inset 0 1px 0 rgba(245, 166, 35, 0.1);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(245, 166, 35, 0.2);
 }
 
 .score-badge::before {
@@ -628,7 +627,7 @@ onMounted(async () => {
 
 /* Score change animation */
 .score-badge.score-animating {
-  animation: scoreChange 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: scoreChange 0.5s cubic-bezier(0.4, 0, 0.4, 1);
 }
 
 @keyframes scoreChange {
@@ -636,7 +635,7 @@ onMounted(async () => {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.15) rotateZ(2deg);
+    transform: scale(1.05) rotateZ(1deg);
   }
   100% {
     transform: scale(1);
@@ -650,38 +649,38 @@ onMounted(async () => {
 @keyframes valueFlash {
   0%, 100% {
     opacity: 1;
-    filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.4));
+    filter: drop-shadow(0 8px 24px rgba(245, 166, 35, 0.4));
   }
   50% {
     opacity: 0.7;
-    filter: drop-shadow(0 0 40px rgba(59, 130, 246, 0.9));
+    filter: drop-shadow(0 0 40px rgba(245, 166, 35, 0.9));
   }
 }
 
 .score-value {
-  font-size: 140px;
+  font-size: 120px;
   font-weight: 900;
-  background: linear-gradient(180deg, #ffffff 0%, #e0e7ff 40%, #c4b5fd 70%, #a78bfa 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #fef3c7 40%, #fcd34d 70%, #f5a623 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 0.9;
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 8px 24px rgba(139, 92, 246, 0.5));
-  letter-spacing: -4px;
+  filter: drop-shadow(0 8px 24px rgba(245, 166, 35, 0.5));
+  letter-spacing: -3px;
 }
 
 .score-label {
   font-size: 18px;
   font-weight: 700;
-  color: #c4b5fd;
+  color: #fcd34d;
   text-transform: uppercase;
   letter-spacing: 6px;
   position: relative;
   z-index: 1;
   opacity: 0.9;
-  text-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+  text-shadow: 0 2px 8px rgba(245, 166, 35, 0.4);
 }
 
 .score-subtitle {
@@ -695,12 +694,13 @@ onMounted(async () => {
 
 /* Events Section */
 .events-section {
-  background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 100%);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  flex: 1;
+  background: linear-gradient(135deg, #0d1830 0%, #142040 100%);
+  border: 1px solid rgba(245, 166, 35, 0.2);
   border-radius: 16px;
-  padding: 25px;
+  padding: 20px;
   margin: 0;
-  width: 100%;
+  min-width: 0;
 }
 
 .events-header {
@@ -709,13 +709,13 @@ onMounted(async () => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid rgba(167, 139, 250, 0.2);
+  border-bottom: 1px solid rgba(245, 166, 35, 0.2);
 }
 
 .events-header h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #c4b5fd;
+  color: #fcd34d;
   margin: 0;
 }
 
@@ -723,7 +723,7 @@ onMounted(async () => {
   font-size: 12px;
   font-weight: 600;
   color: #94a3b8;
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(245, 166, 35, 0.12);
   padding: 4px 12px;
   border-radius: 12px;
 }
@@ -746,7 +746,7 @@ onMounted(async () => {
 }
 
 .events-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  background: linear-gradient(135deg, #f5a623, #fbbf24);
   border-radius: 2px;
 }
 
@@ -797,7 +797,7 @@ onMounted(async () => {
 }
 
 .event-info {
-  border-left-color: #8b5cf6;
+  border-left-color: #f5a623;
 }
 
 .event-icon {
@@ -808,7 +808,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(245, 166, 35, 0.1);
 }
 
 .event-improvement .event-icon {
@@ -832,8 +832,8 @@ onMounted(async () => {
 }
 
 .event-info .event-icon {
-  background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  background: rgba(245, 166, 35, 0.15);
+  color: #f5a623;
 }
 
 .event-icon .icon {
@@ -907,7 +907,7 @@ onMounted(async () => {
 }
 
 .no-vehicle-message p {
-  color: #888;
+  color: #7a90b3;
   font-size: 16px;
 }
 
@@ -916,74 +916,76 @@ onMounted(async () => {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .main-content {
-    margin-left: 70px;
+    margin-left: 64px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .no-sidebar .main-content {
     margin-left: 0;
   }
-  
+
   .content-area {
     padding: 15px;
     overflow: visible;
   }
-  
+
   .dashboard-section {
     overflow: hidden;
   }
-  
+
   .dashboard-layout {
-    gap: 20px;
+    gap: 12px;
   }
-  
-  .driver-score-hero {
-    padding: 20px 10px;
+
+  .score-events-row {
+    flex-direction: column;
   }
-  
+
   .score-badge {
-    padding: 35px 40px;
-    min-width: 280px;
+    padding: 24px 32px;
+    min-width: unset;
+    width: 100%;
+    align-self: stretch;
   }
-  
+
   .score-value {
-    font-size: 100px;
+    font-size: 80px;
     letter-spacing: -2px;
   }
-  
+
   .score-label {
     font-size: 16px;
     letter-spacing: 4px;
   }
-  
+
   .score-subtitle {
     font-size: 10px;
   }
-  
+
   .events-section {
     padding: 15px;
   }
-  
+
   .events-header h3 {
     font-size: 16px;
   }
-  
+
   .events-list {
     max-height: 300px;
   }
-  
+
   .event-item {
     padding: 10px;
   }
-  
+
   .event-icon {
     width: 32px;
     height: 32px;
   }
-  
+
   .event-message {
     font-size: 13px;
   }
@@ -991,89 +993,86 @@ onMounted(async () => {
 
 @media (max-width: 480px) {
   .main-content {
-    margin-left: 60px;
+    margin-left: 0;
+    padding-bottom: 60px;
   }
-  
+
   .content-area {
     padding: 10px;
   }
-  
+
   .dashboard-layout {
     gap: 15px;
   }
-  
-  .driver-score-hero {
-    padding: 15px 5px;
-  }
-  
+
   .score-badge {
-    padding: 25px 30px;
-    min-width: 220px;
+    padding: 20px 24px;
+    min-width: unset;
   }
-  
+
   .score-value {
-    font-size: 80px;
+    font-size: 64px;
     letter-spacing: -1px;
   }
-  
+
   .score-label {
     font-size: 14px;
     letter-spacing: 3px;
   }
-  
+
   .score-subtitle {
     font-size: 9px;
   }
-  
+
   .events-section {
     padding: 12px;
   }
-  
+
   .events-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .events-header h3 {
     font-size: 14px;
   }
-  
+
   .events-list {
     max-height: 250px;
   }
-  
+
   .event-item {
     padding: 8px;
     gap: 8px;
   }
-  
+
   .event-icon {
     width: 28px;
     height: 28px;
   }
-  
+
   .event-icon .icon {
     width: 16px;
     height: 16px;
   }
-  
+
   .event-message {
     font-size: 12px;
   }
-  
+
   .event-reason {
     font-size: 11px;
   }
-  
+
   .no-vehicle-message {
     padding: 20px;
   }
-  
+
   .no-vehicle-message h2 {
     font-size: 18px;
   }
-  
+
   .no-vehicle-message p {
     font-size: 14px;
   }

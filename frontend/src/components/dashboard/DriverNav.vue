@@ -18,8 +18,8 @@ const tabs = [
 <template>
   <nav class="driver-nav">
     <div class="tabs">
-      <button 
-        v-for="tab in tabs" 
+      <button
+        v-for="tab in tabs"
         :key="tab.id"
         class="tab-btn"
         :class="{ active: currentSection === tab.id }"
@@ -28,9 +28,9 @@ const tabs = [
         {{ tab.label }}
       </button>
     </div>
-    
+
     <div v-if="driverVehicles.length > 1" class="vehicle-selector">
-      <select 
+      <select
         :value="selectedVehicleId"
         @change="$emit('update:selectedVehicleId', $event.target.value)"
         class="vehicle-select"
@@ -41,7 +41,7 @@ const tabs = [
       </select>
     </div>
   </nav>
-  
+
   <div v-if="driverVehicles.length === 1" class="single-vehicle-badge">
     <span>Vehicle: {{ selectedVehicle?.plateNumber }} - {{ selectedVehicle?.model }}</span>
   </div>
@@ -53,7 +53,7 @@ const tabs = [
   align-items: center;
   padding: 15px 25px;
   background: var(--bg-secondary);
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #1a2d50;
 }
 
 .tabs {
@@ -66,7 +66,7 @@ const tabs = [
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #888;
+  color: #7a90b3;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -79,8 +79,8 @@ const tabs = [
 }
 
 .tab-btn.active {
-  background: #3b82f6;
-  color: #fff;
+  background: #f5a623;
+  color: #06101f;
 }
 
 .vehicle-selector {
@@ -90,7 +90,7 @@ const tabs = [
 .vehicle-select {
   padding: 10px 15px;
   background: var(--bg-tertiary);
-  border: 1px solid #333;
+  border: 1px solid #1a2d50;
   border-radius: 8px;
   color: #fff;
   font-size: 14px;
@@ -101,14 +101,14 @@ const tabs = [
 
 .vehicle-select:hover,
 .vehicle-select:focus {
-  border-color: #3b82f6;
+  border-color: #f5a623;
 }
 
 .single-vehicle-badge {
   padding: 10px 25px;
   background: var(--bg-secondary);
-  border-bottom: 1px solid #222;
-  color: #888;
+  border-bottom: 1px solid #1a2d50;
+  color: #7a90b3;
   font-size: 13px;
 }
 
@@ -116,7 +116,7 @@ const tabs = [
   background: var(--bg-tertiary);
   padding: 6px 12px;
   border-radius: 6px;
-  color: #3b82f6;
+  color: #f5a623;
 }
 
 @media (max-width: 768px) {
@@ -125,29 +125,29 @@ const tabs = [
     gap: 10px;
     padding: 15px;
   }
-  
+
   .tabs {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .tab-btn {
     padding: 8px 15px;
     font-size: 13px;
     white-space: nowrap;
   }
-  
+
   .vehicle-selector {
     margin-left: 0;
     width: 100%;
   }
-  
+
   .vehicle-select {
     width: 100%;
     min-width: auto;
   }
-  
+
   .single-vehicle-badge {
     padding: 10px 15px;
   }
@@ -157,7 +157,7 @@ const tabs = [
   .driver-nav {
     padding: 10px;
   }
-  
+
   .tab-btn {
     padding: 8px 12px;
     font-size: 12px;
