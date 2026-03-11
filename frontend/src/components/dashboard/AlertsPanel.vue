@@ -23,6 +23,16 @@ const sortedAlerts = computed(() => {
   return [...alerts.value].sort((a, b) => b.timestamp - a.timestamp)
 })
 
+const dedupedAlerts = computed(() => {
+  const seen = new Set()
+  return sortedAlerts.value.filter(alert => {
+    const key = alert.type + '_' + alert.timestamp
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+})
+
 async function fetchAlerts() {
   if (!props.isAdmin) return
   loading.value = true
@@ -137,7 +147,7 @@ onMounted(() => {
 
         <div v-else class="alerts-list">
           <div
-            v-for="alert in sortedAlerts"
+            v-for="alert in dedupedAlerts"
             :key="alert.id"
             class="alert-item"
             :class="[getSeverityClass(alert.severity), { acknowledged: alert.acknowledged }]"

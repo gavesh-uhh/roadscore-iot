@@ -2,7 +2,6 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { RotateCw } from 'lucide-vue-next'
 
-import { api } from '../api'
 import { useLiveData } from '../composables/useLiveData'
 import { useCrud } from '../composables/useCrud'
 import { api } from '../api'
