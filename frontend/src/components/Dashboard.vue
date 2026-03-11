@@ -106,6 +106,10 @@ const scoreResetLoading = ref(false)
 const editingScore = ref(null)
 const editScoreValue = ref(1000)
 
+// Dashboard reset variables
+const showResetConfirm = ref(false)
+const resetLoading = ref(false)
+
 const scoresWithVehicle = computed(() => {
   return scores.value.map(s => {
     const vehicle = vehicles.value.find(v => v.id === s.vehicleId)
@@ -149,6 +153,25 @@ function cancelEditScore() {
 async function saveEditScore(vehicleId) {
   await updateScore(vehicleId, editScoreValue.value)
   editingScore.value = null
+}
+
+// Dashboard reset functions
+function openResetConfirm() {
+  showResetConfirm.value = true
+}
+
+async function confirmResetScore() {
+  const vehicleId = isAdmin.value ? selectedVehicleId.value : selectedVehicle.value?.id
+  if (!vehicleId) return
+  
+  resetLoading.value = true
+  await resetScore(vehicleId)
+  resetLoading.value = false
+  showResetConfirm.value = false
+}
+
+function closeResetConfirm() {
+  showResetConfirm.value = false
 }
 
 function changeSection(section) {
@@ -571,6 +594,11 @@ onMounted(async () => {
   overflow: hidden;
   background: var(--bg-primary);
   color: #fff;
+  position: relative;
+}
+
+.app-container.no-sidebar .main-content {
+  margin-left: 0;
 }
 
 .main-content {
@@ -578,6 +606,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .content-area {
@@ -585,6 +614,8 @@ onMounted(async () => {
   padding: 25px;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .dashboard-section {
@@ -592,6 +623,7 @@ onMounted(async () => {
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+  height: 100%;
 }
 
 .dashboard-layout {
@@ -599,8 +631,12 @@ onMounted(async () => {
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px 20px;
   padding-bottom: 24px;
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .score-events-row {
@@ -608,6 +644,8 @@ onMounted(async () => {
   gap: 20px;
   align-items: flex-start;
   flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .score-badge {
@@ -622,6 +660,7 @@ onMounted(async () => {
   gap: 10px;
   min-width: 240px;
   height: 350px;
+  box-sizing: border-box;
   box-shadow:
     0 10px 50px rgba(0, 0, 0, 0.6),
     0 0 20px rgba(245, 166, 35, 0.12),
@@ -762,10 +801,11 @@ onMounted(async () => {
   padding: 20px;
   margin: 0;
   min-width: 0;
-  height: 350px;
+  max-height: 350px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .events-header {
@@ -998,49 +1038,65 @@ onMounted(async () => {
 .no-vehicle-message p {
   color: #7a90b3;
   font-size: 16px;
-    drivingEvents.value = recentEvents
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .filter(event => {
-        const key = event.type + '_' + event.timestamp
-        if (seen.has(key)) return false
-        seen.add(key)
-        return true
-      })
-      .slice(0, 10)
-      .map((event, i) => {
-        const matchedAlert = (alertsByTimestamp[event.timestamp] || [])
-          .find(a => a.vehicleId === vehicleId)
-        // Show bonus for positive events
-        const isPositive = event.type === 'Smooth Brake' || event.type === 'Smooth Acceleration' || matchedAlert?.severity === 'positive';
-        return {
-          id: event.timestamp + i,
-          timestamp: event.timestamp,
-          type: mapSeverityToType(matchedAlert?.severity || (isPositive ? 'positive' : '')), // 'success' for positive
-          message: matchedAlert?.message || event.type,
-          reason: matchedAlert ? `Severity: ${matchedAlert.severity}` : (isPositive ? 'Bonus: +10' : null),
-          location: event.location,
-          rawData: event.rawData,
-          acknowledged: matchedAlert?.acknowledged || false,
-          bonus: isPositive ? 10 : 0
-        }
-      })
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .app-container {
+    overflow: hidden;
+  }
+
+  .main-content {
+    overflow: hidden;
+    position: relative;
+    margin-left: 64px;
+  }
+
+  .app-container.no-sidebar .main-content {
+    margin-left: 0;
+  }
+
+  .content-area {
+    padding: 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .dashboard-section {
     overflow: hidden;
+    height: 100%;
   }
 
   .dashboard-layout {
     gap: 12px;
+    padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   .score-events-row {
     flex-direction: column;
+    gap: 12px;
+    width: 100%;
   }
 
   .score-badge {
-    padding: 24px 32px;
+    padding: 30px 40px;
     min-width: unset;
     width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 250px;
     align-self: stretch;
+    box-sizing: border-box;
+  }
+
+  .reset-score-btn {
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
   }
 
   .score-value {
@@ -1059,6 +1115,12 @@ onMounted(async () => {
 
   .events-section {
     padding: 15px;
+    max-height: none;
+    height: auto;
+    min-height: 250px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .events-header h3 {
@@ -1066,11 +1128,12 @@ onMounted(async () => {
   }
 
   .events-list {
-    max-height: 300px;
+    max-height: none;
   }
 
   .event-item {
-    padding: 10px;
+    padding: 12px;
+    gap: 10px;
   }
 
   .event-icon {
@@ -1081,67 +1144,138 @@ onMounted(async () => {
   .event-message {
     font-size: 13px;
   }
+
+  .stats-below {
+    padding: 0;
+  }
+
+  .charts-scroll {
+    min-height: 300px;
+    padding: 0;
+  }
 }
 
 @media (max-width: 480px) {
+  .app-container {
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
   .main-content {
     margin-left: 0;
+    overflow: hidden;
     padding-bottom: 60px;
   }
 
+  .app-container.no-sidebar .main-content {
+    padding-bottom: 0;
+  }
+
   .content-area {
-    padding: 10px;
+    padding: 8px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
+  }
+
+  .dashboard-section {
+    overflow: hidden;
+    height: 100%;
   }
 
   .dashboard-layout {
-    gap: 15px;
+    gap: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .score-events-row {
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .score-badge {
-    padding: 20px 24px;
+    padding: 20px 20px;
     min-width: unset;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 220px;
+    box-sizing: border-box;
+  }
+
+  .reset-score-btn {
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .reset-score-btn svg {
+    width: 14px;
+    height: 14px;
   }
 
   .score-value {
-    font-size: 64px;
+    font-size: 72px;
     letter-spacing: -1px;
   }
 
   .score-label {
-    font-size: 14px;
-    letter-spacing: 3px;
+    font-size: 13px;
+    letter-spacing: 2px;
   }
 
   .score-subtitle {
     font-size: 9px;
+    letter-spacing: 1px;
   }
 
   .events-section {
     padding: 12px;
+    height: auto;
+    max-height: none;
+    min-height: 200px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .events-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
   }
 
   .events-header h3 {
     font-size: 14px;
   }
 
-  .events-list {
-    max-height: 250px;
+  .events-count {
+    font-size: 11px;
+    padding: 3px 10px;
   }
 
-  .event-item {
-    padding: 8px;
+  .events-list {
+    max-height: none;
     gap: 8px;
   }
 
+  .event-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
   .event-icon {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
   }
 
   .event-icon .icon {
@@ -1157,12 +1291,25 @@ onMounted(async () => {
     font-size: 11px;
   }
 
+  .event-time {
+    font-size: 10px;
+  }
+
+  .stats-below {
+    padding: 0;
+  }
+
+  .charts-scroll {
+    min-height: 250px;
+    padding: 0;
+  }
+
   .no-vehicle-message {
     padding: 20px;
   }
 
   .no-vehicle-message h2 {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .no-vehicle-message p {
