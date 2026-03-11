@@ -262,49 +262,6 @@ function formatEventTime(timestamp) {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
-function openResetConfirm() {
-  showResetConfirm.value = true
-}
-
-function closeResetConfirm() {
-  showResetConfirm.value = false
-}
-
-async function confirmResetScore() {
-  resetLoading.value = true
-  try {
-    const vehicleId = isAdmin.value ? selectedVehicleId.value : selectedVehicle.value?.id
-    
-    if (!vehicleId) {
-      alert('No vehicle selected')
-      return
-    }
-    
-    await api.resetDriverScore(vehicleId)
-    
-    // Clear events list
-    drivingEvents.value = []
-    lastViolation.value = null
-    
-    // Show success message
-    drivingEvents.value.unshift({
-      id: Date.now(),
-      timestamp: new Date(),
-      type: 'info',
-      message: 'Driver score reset successfully',
-      reason: 'Score has been reset to 1000 points',
-      icon: 'check-circle'
-    })
-    
-    closeResetConfirm()
-  } catch (error) {
-    console.error('Failed to reset driver score:', error)
-    alert('Failed to reset driver score: ' + error.message)
-  } finally {
-    resetLoading.value = false
-  }
-}
-
 onMounted(async () => {
   await fetchAll()
 
