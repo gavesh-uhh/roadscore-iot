@@ -14,14 +14,20 @@
 #define VIBRATION_PIN 1
 #define SOUND_PIN 3
 #define GPS_RX_PIN 13
-#define DB_URL "https://iot-test-b3636-default-rtdb.asia-southeast1.firebasedatabase.app"
-#define FB_API_KEY "AIzaSyBPUZ0bFw1jK6mcjvoOxr4CJ0A6i7snvpQ"
-#define FIREBASE_USER "gavesh@gavesh.me"
-#define FIREBASE_PASS "123123123"
+
+// Firebase Config
+#define FIREBASE_USER "xxx"
+#define FIREBASE_PASS "xxx"
+#define DB_URL "https://xxx.firebasedatabase.app"
+#define FB_API_KEY "xxxx"
+
+// In-Built Device Config
 const char *VEHICLE_ID = "VEH_001";
 const char *DEVICE_ID = "ESP32_001";
-const char *STA_SSID = "Gavesh";
-const char *STA_PASS = "123123123";
+
+// WiFi Config
+const char *STA_SSID = "xxx";
+const char *STA_PASS = "xxx";
 
 const bool DISABLE_SERIAL = false;
 const unsigned long FIREBASE_INTERVAL = 1000;
