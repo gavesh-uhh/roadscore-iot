@@ -1,7 +1,7 @@
 # RoadScore
 
 ```
-Warning: The Firebase API key and credentials in this codebase are publicly visible.
+Warning: Firebase API key and credentials in this codebase were publicly visible.
 ```
 
 ## Introduction
